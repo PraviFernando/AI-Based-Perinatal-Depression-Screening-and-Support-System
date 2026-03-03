@@ -13,11 +13,18 @@ const app = express();
 
 const PORT = process.env.PORT || 8073;
 
-// Middleware
-app.use(cors({ 
-  origin: 'http://localhost:3000', // change to your actual frontend URL in production
-  credentials: true 
-}));
+// Middleware – allow ALL origins (works for Expo Web, Android emulator, iOS simulator, LAN)
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 app.use(express.json());
 app.use(cookieParser());
 

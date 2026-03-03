@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import DashboardScreen from './screens/DashboardScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,9 +27,14 @@ export default function App() {
             component={SignupScreen}
             options={{ headerShown: false }}
           />
-          {/* Add Home screen here later */}
+          <Stack.Screen
+            name="Dashboard"
+            component={DashboardScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
+      {/* Global Toast – renders above everything */}
       <Toast />
     </SafeAreaProvider>
   );
