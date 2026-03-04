@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -6,22 +6,75 @@ import {
     TouchableOpacity,
     StyleSheet,
     Dimensions,
+    Image,
     Modal,
-    RefreshControl,
-    ActivityIndicator,
+    Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { BarChart, PieChart } from 'react-native-chart-kit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
 
 const { width } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────
-// COMPONENTS
+// MOCK DATA
 // ─────────────────────────────────────────────
+const mockUser = {
+    name: 'Sarah Johnson',
+    role: 'Patient',
+    avatar: null,
+    lastVisit: '28 Feb 2026',
+};
 
+const mockStats = [
+    { label: 'Screenings Done', value: 12, icon: '📋', color: '#7C3AED' },
+    { label: 'Risk Score', value: '34%', icon: '📊', color: '#0EA5E9' },
+    { label: 'Sessions Left', value: 5, icon: '🕐', color: '#10B981' },
+    { label: 'Mood Streak', value: '7 days', icon: '🌟', color: '#F59E0B' },
+];
+
+const barChartData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+        {
+            data: [30, 45, 28, 60, 40, 55],
+        },
+    ],
+};
+
+const pieChartData = [
+    { name: 'Mild', population: 35, color: '#10B981', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: 'Moderate', population: 40, color: '#F59E0B', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: 'Severe', population: 15, color: '#EF4444', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: 'None', population: 10, color: '#7C3AED', legendFontColor: '#374151', legendFontSize: 13 },
+];
+
+const progressData = [
+    { label: 'Anxiety Level', progress: 0.62, color: '#EF4444' },
+    { label: 'Sleep Quality', progress: 0.75, color: '#10B981' },
+    { label: 'Social Support', progress: 0.48, color: '#0EA5E9' },
+    { label: 'Emotional Balance', progress: 0.83, color: '#7C3AED' },
+];
+
+const recentActivities = [
+    { id: 1, title: 'EPDS Screening Completed', time: '2 hours ago', icon: '✅', color: '#10B981' },
+    { id: 2, title: 'Therapy Session Scheduled', time: 'Yesterday', icon: '📅', color: '#0EA5E9' },
+    { id: 3, title: 'Mood Log Updated', time: '2 days ago', icon: '😊', color: '#F59E0B' },
+    { id: 4, title: 'Doctor Note Added', time: '3 days ago', icon: '📝', color: '#7C3AED' },
+];
+
+const navItems = [
+    { key: 'home', label: 'Dashboard', icon: '🏠' },
+    { key: 'screening', label: 'Screening', icon: '📋' },
+    { key: 'reports', label: 'Reports', icon: '📈' },
+    { key: 'therapy', label: 'Therapy', icon: '💆' },
+    { key: 'profile', label: 'Profile', icon: '👤' },
+    { key: 'settings', label: 'Settings', icon: '⚙️' },
+];
+
+// ─────────────────────────────────────────────
+// PROGRESS BAR COMPONENT
+// ─────────────────────────────────────────────
 function ProgressBar({ label, progress, color }) {
     const percent = Math.round(progress * 100);
     return (
@@ -37,44 +90,41 @@ function ProgressBar({ label, progress, color }) {
     );
 }
 
-function StatCard({ icon, label, value, color, loading }) {
+// ─────────────────────────────────────────────
+// STAT CARD COMPONENT
+// ─────────────────────────────────────────────
+function StatCard({ icon, label, value, color }) {
     return (
         <View style={[styles.statCard, { borderLeftColor: color }]}>
             <Text style={styles.statIcon}>{icon}</Text>
-            {loading ? (
-                <ActivityIndicator size="small" color={color} style={styles.statLoader} />
-            ) : (
-                <Text style={[styles.statValue, { color }]}>{value}</Text>
-            )}
+            <Text style={[styles.statValue, { color }]}>{value}</Text>
             <Text style={styles.statLabel}>{label}</Text>
         </View>
     );
 }
 
-function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout, user }) {
-    const navItems = [
-        { key: 'home', label: 'Dashboard', icon: '🏠' },
-        { key: 'screening', label: 'Screening', icon: '📋' },
-        { key: 'reports', label: 'Reports', icon: '📈' },
-        { key: 'therapy', label: 'Therapy', icon: '💆' },
-        { key: 'profile', label: 'Profile', icon: '👤' },
-        { key: 'settings', label: 'Settings', icon: '⚙️' },
-    ];
-
+// ─────────────────────────────────────────────
+// SIDEBAR COMPONENT
+// ─────────────────────────────────────────────
+function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
     return (
-        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <Modal
+            transparent
+            visible={visible}
+            animationType="slide"
+            onRequestClose={onClose}
+        >
             <View style={styles.sidebarOverlay}>
                 <TouchableOpacity style={styles.sidebarBackdrop} onPress={onClose} />
                 <View style={styles.sidebarContainer}>
+                    {/* Sidebar Header */}
                     <View style={styles.sidebarHeader}>
                         <View style={styles.sidebarAvatar}>
-                            <Text style={styles.sidebarAvatarText}>
-                                {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                            </Text>
+                            <Text style={styles.sidebarAvatarText}>SJ</Text>
                         </View>
                         <View style={styles.sidebarUserInfo}>
-                            <Text style={styles.sidebarUserName}>{user?.name || 'User'}</Text>
-                            <Text style={styles.sidebarUserRole}>{user?.role || 'Patient'}</Text>
+                            <Text style={styles.sidebarUserName}>{mockUser.name}</Text>
+                            <Text style={styles.sidebarUserRole}>{mockUser.role}</Text>
                         </View>
                         <TouchableOpacity onPress={onClose} style={styles.sidebarCloseBtn}>
                             <Text style={styles.sidebarCloseText}>✕</Text>
@@ -83,6 +133,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout, user }) {
 
                     <View style={styles.sidebarDivider} />
 
+                    {/* Nav Items */}
                     <ScrollView style={styles.sidebarNav}>
                         {navItems.map((item) => (
                             <TouchableOpacity
@@ -112,6 +163,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout, user }) {
 
                     <View style={styles.sidebarDivider} />
 
+                    {/* Logout */}
                     <TouchableOpacity style={styles.sidebarLogout} onPress={onLogout}>
                         <Text style={styles.sidebarLogoutIcon}>🚪</Text>
                         <Text style={styles.sidebarLogoutText}>Sign Out</Text>
@@ -122,7 +174,10 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout, user }) {
     );
 }
 
-function Header({ onMenuPress, onNotifPress, notificationCount }) {
+// ─────────────────────────────────────────────
+// HEADER COMPONENT
+// ─────────────────────────────────────────────
+function Header({ onMenuPress, onNotifPress }) {
     return (
         <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuBtn}>
@@ -138,25 +193,19 @@ function Header({ onMenuPress, onNotifPress, notificationCount }) {
 
             <TouchableOpacity onPress={onNotifPress} style={styles.notifBtn}>
                 <Text style={styles.notifIcon}>🔔</Text>
-                {notificationCount > 0 && (
-                    <View style={styles.notifBadge}>
-                        <Text style={styles.notifBadgeText}>{notificationCount}</Text>
-                    </View>
-                )}
+                <View style={styles.notifBadge}>
+                    <Text style={styles.notifBadgeText}>3</Text>
+                </View>
             </TouchableOpacity>
         </View>
     );
 }
 
+// ─────────────────────────────────────────────
+// FOOTER COMPONENT
+// ─────────────────────────────────────────────
 function Footer({ activeTab, onTabPress }) {
-    const footerItems = [
-        { key: 'home', label: 'Dashboard', icon: '🏠' },
-        { key: 'screening', label: 'Screening', icon: '📋' },
-        { key: 'reports', label: 'Reports', icon: '📈' },
-        { key: 'therapy', label: 'Therapy', icon: '💆' },
-        { key: 'profile', label: 'Profile', icon: '👤' },
-    ];
-
+    const footerItems = navItems.slice(0, 5);
     return (
         <View style={styles.footer}>
             {footerItems.map((item) => (
@@ -187,182 +236,41 @@ function Footer({ activeTab, onTabPress }) {
 export default function DashboardScreen({ navigation }) {
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const [activeTab, setActiveTab] = useState('home');
-    const [refreshing, setRefreshing] = useState(false);
-    const [loading, setLoading] = useState(true);
-    
-    // State for real data
-    const [user, setUser] = useState(null);
-    const [stats, setStats] = useState({
-        screeningsDone: 0,
-        riskScore: '0%',
-        sessionsLeft: 0,
-        moodStreak: '0 days'
-    });
-    const [chartData, setChartData] = useState({
-        monthlyActivity: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{ data: [0, 0, 0, 0, 0, 0] }]
-        },
-        riskBreakdown: [
-            { name: 'Mild', population: 0, color: '#10B981' },
-            { name: 'Moderate', population: 0, color: '#F59E0B' },
-            { name: 'Severe', population: 0, color: '#EF4444' },
-            { name: 'None', population: 0, color: '#7C3AED' },
-        ]
-    });
-    const [progressData, setProgressData] = useState([
-        { label: 'Anxiety Level', progress: 0, color: '#EF4444' },
-        { label: 'Sleep Quality', progress: 0, color: '#10B981' },
-        { label: 'Social Support', progress: 0, color: '#0EA5E9' },
-        { label: 'Emotional Balance', progress: 0, color: '#7C3AED' },
-    ]);
-    const [recentActivities, setRecentActivities] = useState([]);
-    const [notificationCount, setNotificationCount] = useState(0);
-    const [lastVisit, setLastVisit] = useState('');
 
-    // ── Fetch Dashboard Data ──
-    const fetchDashboardData = useCallback(async () => {
-        try {
-            setLoading(true);
-            
-            // Get user data from AsyncStorage
-            const userData = await AsyncStorage.getItem('user');
-            if (userData) {
-                setUser(JSON.parse(userData));
-            }
-
-            // Fetch real data from API
-            const [statsRes, activityRes, progressRes, notificationsRes] = await Promise.all([
-                api.get('/dashboard/stats').catch(() => null),
-                api.get('/dashboard/activity').catch(() => null),
-                api.get('/dashboard/progress').catch(() => null),
-                api.get('/notifications/count').catch(() => null),
-            ]);
-
-            // Update stats
-            if (statsRes?.data) {
-                setStats({
-                    screeningsDone: statsRes.data.screeningsDone || 0,
-                    riskScore: statsRes.data.riskScore || '0%',
-                    sessionsLeft: statsRes.data.sessionsLeft || 0,
-                    moodStreak: statsRes.data.moodStreak || '0 days'
-                });
-            }
-
-            // Update chart data
-            if (activityRes?.data) {
-                setChartData({
-                    monthlyActivity: {
-                        labels: activityRes.data.labels || chartData.monthlyActivity.labels,
-                        datasets: [{ data: activityRes.data.values || [0,0,0,0,0,0] }]
-                    },
-                    riskBreakdown: activityRes.data.riskBreakdown || chartData.riskBreakdown
-                });
-            }
-
-            // Update progress data
-            if (progressRes?.data) {
-                setProgressData(progressRes.data.indicators || progressData);
-            }
-
-            // Update recent activities
-            if (activityRes?.data?.recentActivities) {
-                setRecentActivities(activityRes.data.recentActivities);
-            }
-
-            // Update notifications
-            if (notificationsRes?.data) {
-                setNotificationCount(notificationsRes.data.count || 0);
-            }
-
-            // Get last visit from AsyncStorage
-            const lastVisitStr = await AsyncStorage.getItem('lastVisit');
-            if (lastVisitStr) {
-                setLastVisit(lastVisitStr);
-            }
-
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'Failed to load dashboard data',
-                position: 'top',
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    // ── Initial Load ──
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
-    // ── Pull to Refresh ──
-    const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        await fetchDashboardData();
-        setRefreshing(false);
-    }, []);
-
-    // ── Handle Logout ──
-    const handleLogout = async () => {
-        try {
-            setSidebarVisible(false);
-            
-            // Clear AsyncStorage
-            await AsyncStorage.multiRemove(['user', 'token', 'lastVisit']);
-            
-            // Call logout API
-            await api.post('/user/logout').catch(() => {});
-            
-            Toast.show({
-                type: 'success',
-                text1: 'Signed Out',
-                text2: 'You have been signed out successfully.',
-                position: 'top',
-            });
-            
-            setTimeout(() => {
-                navigation.replace('Login');
-            }, 1500);
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
+    const handleLogout = () => {
+        setSidebarVisible(false);
+        Toast.show({
+            type: 'success',
+            text1: 'Signed Out',
+            text2: 'You have been signed out successfully.',
+            position: 'top',
+        });
+        setTimeout(() => {
+            navigation.replace('Login');
+        }, 1500);
     };
 
-    // ── Handle Tab Press ──
+    const handleNotifPress = () => {
+        Toast.show({
+            type: 'info',
+            text1: '🔔 Notifications',
+            text2: 'You have 3 new notifications.',
+            position: 'top',
+        });
+    };
+
     const handleTabPress = (tab) => {
         setActiveTab(tab);
-        
         if (tab !== 'home') {
             Toast.show({
                 type: 'info',
-                text1: `${tab.charAt(0).toUpperCase() + tab.slice(1)}`,
+                text1: `${navItems.find(n => n.key === tab)?.label}`,
                 text2: 'This section is coming soon!',
                 position: 'bottom',
             });
         }
     };
 
-    // ── Handle Notification Press ──
-    const handleNotifPress = async () => {
-        try {
-            const response = await api.get('/notifications');
-            // Navigate to notifications screen or show modal
-            Toast.show({
-                type: 'info',
-                text1: '🔔 Notifications',
-                text2: `You have ${notificationCount} new notifications`,
-                position: 'top',
-            });
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        }
-    };
-
-    // Chart Configuration
     const chartConfig = {
         backgroundGradientFrom: '#fff',
         backgroundGradientTo: '#fff',
@@ -374,69 +282,144 @@ export default function DashboardScreen({ navigation }) {
         barPercentage: 0.6,
     };
 
-    // Loading State
-    if (loading && !refreshing) {
-        return (
-            <SafeAreaView style={[styles.safeArea, styles.centerContent]}>
-                <ActivityIndicator size="large" color="#7C3AED" />
-                <Text style={styles.loadingText}>Loading your dashboard...</Text>
-            </SafeAreaView>
-        );
-    }
-
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* Sidebar */}
+            {/* ── Sidebar ── */}
             <Sidebar
                 visible={sidebarVisible}
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 onClose={() => setSidebarVisible(false)}
                 onLogout={handleLogout}
-                user={user}
             />
 
-            {/* Header */}
+            {/* ── Header ── */}
             <Header
                 onMenuPress={() => setSidebarVisible(true)}
                 onNotifPress={handleNotifPress}
-                notificationCount={notificationCount}
             />
 
-            {/* Main Content */}
+            {/* ── Main Scrollable Content ── */}
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#7C3AED']} />
-                }
             >
                 {/* Greeting Banner */}
                 <View style={styles.greetingBanner}>
                     <View style={styles.greetingTextContainer}>
-                        <Text style={styles.greetingHello}>
-                            Hello, {user?.name?.split(' ')[0] || 'User'} 👋
-                        </Text>
+                        <Text style={styles.greetingHello}>Hello, {mockUser.name.split(' ')[0]} 👋</Text>
                         <Text style={styles.greetingSubtitle}>Here's your health overview</Text>
-                        {lastVisit ? (
-                            <Text style={styles.greetingDate}>Last visit: {lastVisit}</Text>
-                        ) : null}
+                        <Text style={styles.greetingDate}>Last visit: {mockUser.lastVisit}</Text>
                     </View>
                     <View style={styles.greetingAvatarLarge}>
-                        <Text style={styles.greetingAvatarText}>
-                            {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                        </Text>
+                        <Text style={styles.greetingAvatarText}>SJ</Text>
                     </View>
+                </View>
+
+                {/* Stat Cards */}
+                <Text style={styles.sectionTitle}>Overview</Text>
+                <View style={styles.statsGrid}>
+                    {mockStats.map((stat, i) => (
+                        <StatCard key={i} {...stat} />
+                    ))}
+                </View>
+
+                {/* Bar Chart */}
+                <Text style={styles.sectionTitle}>Monthly Screening Activity</Text>
+                <View style={styles.chartCard}>
+                    <BarChart
+                        data={barChartData}
+                        width={width - 48}
+                        height={200}
+                        chartConfig={chartConfig}
+                        style={styles.chart}
+                        showValuesOnTopOfBars
+                        fromZero
+                    />
+                </View>
+
+                {/* Pie Chart */}
+                <Text style={styles.sectionTitle}>Depression Risk Breakdown</Text>
+                <View style={styles.chartCard}>
+                    <PieChart
+                        data={pieChartData}
+                        width={width - 48}
+                        height={200}
+                        chartConfig={chartConfig}
+                        accessor="population"
+                        backgroundColor="transparent"
+                        paddingLeft="15"
+                        absolute={false}
+                    />
+                </View>
+
+                {/* Progress Bars */}
+                <Text style={styles.sectionTitle}>Wellness Indicators</Text>
+                <View style={styles.progressCard}>
+                    {progressData.map((item, i) => (
+                        <ProgressBar key={i} {...item} />
+                    ))}
+                </View>
+
+                {/* Recent Activity */}
+                <Text style={styles.sectionTitle}>Recent Activity</Text>
+                <View style={styles.activityCard}>
+                    {recentActivities.map((item) => (
+                        <View key={item.id} style={styles.activityRow}>
+                            <View style={[styles.activityIconBox, { backgroundColor: item.color + '22' }]}>
+                                <Text style={styles.activityIcon}>{item.icon}</Text>
+                            </View>
+                            <View style={styles.activityInfo}>
+                                <Text style={styles.activityTitle}>{item.title}</Text>
+                                <Text style={styles.activityTime}>{item.time}</Text>
+                            </View>
+                            <View style={[styles.activityDot, { backgroundColor: item.color }]} />
+                        </View>
+                    ))}
+                </View>
+
+                {/* Quick Action Buttons */}
+                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <View style={styles.quickActions}>
+                    <TouchableOpacity
+                        style={[styles.quickActionBtn, { backgroundColor: '#7C3AED' }]}
+                        onPress={() =>
+                            Toast.show({ type: 'success', text1: '📋 Screening', text2: 'Starting new screening...', position: 'top' })
+                        }
+                    >
+                        <Text style={styles.quickActionIcon}>📋</Text>
+                        <Text style={styles.quickActionText}>Start Screening</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.quickActionBtn, { backgroundColor: '#0EA5E9' }]}
+                        onPress={() =>
+                            Toast.show({ type: 'info', text1: '📅 Booking', text2: 'Opening appointment scheduler...', position: 'top' })
+                        }
+                    >
+                        <Text style={styles.quickActionIcon}>📅</Text>
+                        <Text style={styles.quickActionText}>Book Session</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.quickActionBtn, { backgroundColor: '#10B981' }]}
+                        onPress={() =>
+                            Toast.show({ type: 'success', text1: '😊 Mood', text2: 'Mood log updated!', position: 'top' })
+                        }
+                    >
+                        <Text style={styles.quickActionIcon}>😊</Text>
+                        <Text style={styles.quickActionText}>Log Mood</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={{ height: 20 }} />
             </ScrollView>
 
-            {/* Footer */}
+            {/* ── Footer ── */}
             <Footer activeTab={activeTab} onTabPress={handleTabPress} />
 
-            {/* Toast */}
+            {/* Toast must be the last child */}
             <Toast />
         </SafeAreaView>
     );
@@ -446,6 +429,7 @@ export default function DashboardScreen({ navigation }) {
 // STYLES
 // ─────────────────────────────────────────────
 const PURPLE = '#7C3AED';
+const PURPLE_LIGHT = '#EDE9FE';
 const BG = '#F3F4F6';
 const WHITE = '#FFFFFF';
 
@@ -453,15 +437,6 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: BG,
-    },
-    centerContent: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 14,
-        color: '#6B7280',
     },
 
     // ── Header ──
@@ -527,7 +502,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // ── Sidebar Styles ──
+    // ── Sidebar ──
     sidebarOverlay: {
         flex: 1,
         flexDirection: 'row',
@@ -603,7 +578,7 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     sidebarNavItemActive: {
-        backgroundColor: '#EDE9FE',
+        backgroundColor: PURPLE_LIGHT,
         borderRadius: 0,
     },
     sidebarNavIcon: {
@@ -645,7 +620,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 
-    // ── Scroll View ──
+    // ── Scroll ──
     scrollView: {
         flex: 1,
     },
@@ -654,7 +629,7 @@ const styles = StyleSheet.create({
         paddingTop: 16,
     },
 
-    // ── Greeting Banner ──
+    // ── Greeting ──
     greetingBanner: {
         backgroundColor: PURPLE,
         borderRadius: 20,
@@ -707,7 +682,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-    // ── Stats Grid ──
+    // ── Stats ──
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -740,9 +715,6 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         fontWeight: '500',
     },
-    statLoader: {
-        marginVertical: 8,
-    },
 
     // ── Chart Card ──
     chartCard: {
@@ -756,14 +728,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.07,
         shadowRadius: 4,
         alignItems: 'center',
-        minHeight: 200,
-        justifyContent: 'center',
     },
     chart: {
         borderRadius: 12,
     },
 
-    // ── Progress Card ──
+    // ── Progress ──
     progressCard: {
         backgroundColor: WHITE,
         borderRadius: 16,
@@ -803,7 +773,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
 
-    // ── Activity Card ──
+    // ── Activity ──
     activityCard: {
         backgroundColor: WHITE,
         borderRadius: 16,
@@ -850,11 +820,6 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-    },
-    emptyText: {
-        textAlign: 'center',
-        color: '#9CA3AF',
-        padding: 20,
     },
 
     // ── Quick Actions ──
