@@ -66,8 +66,8 @@ const recentActivities = [
 const navItems = [
     { key: 'home', label: 'Dashboard', icon: '🏠' },
     { key: 'screening', label: 'Screening', icon: '📋' },
-    { key: 'reports', label: 'Reports', icon: '📈' },
-    { key: 'therapy', label: 'Therapy', icon: '💆' },
+    { key: 'diary', label: 'My Diary', icon: '📔' },
+    { key: 'plan', label: 'My Plans', icon: '📅' },
     { key: 'profile', label: 'Profile', icon: '👤' },
     { key: 'settings', label: 'Settings', icon: '⚙️' },
 ];
@@ -261,10 +261,14 @@ export default function DashboardScreen({ navigation }) {
 
     const handleTabPress = (tab) => {
         setActiveTab(tab);
-        if (tab !== 'home') {
+        if (tab === 'diary') {
+            navigation.navigate('Diary');
+        } else if (tab === 'plan') {
+            navigation.navigate('Plan');
+        } else if (tab !== 'home') {
             Toast.show({
                 type: 'info',
-                text1: `${navItems.find(n => n.key === tab)?.label}`,
+                text1: navItems.find(n => n.key === tab)?.label || tab,
                 text2: 'This section is coming soon!',
                 position: 'bottom',
             });
@@ -384,22 +388,18 @@ export default function DashboardScreen({ navigation }) {
                 <View style={styles.quickActions}>
                     <TouchableOpacity
                         style={[styles.quickActionBtn, { backgroundColor: '#7C3AED' }]}
-                        onPress={() =>
-                            Toast.show({ type: 'success', text1: '📋 Screening', text2: 'Starting new screening...', position: 'top' })
-                        }
+                        onPress={() => navigation.navigate('Diary')}
                     >
-                        <Text style={styles.quickActionIcon}>📋</Text>
-                        <Text style={styles.quickActionText}>Start Screening</Text>
+                        <Text style={styles.quickActionIcon}>📔</Text>
+                        <Text style={styles.quickActionText}>My Diary</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={[styles.quickActionBtn, { backgroundColor: '#0EA5E9' }]}
-                        onPress={() =>
-                            Toast.show({ type: 'info', text1: '📅 Booking', text2: 'Opening appointment scheduler...', position: 'top' })
-                        }
+                        onPress={() => navigation.navigate('Plan')}
                     >
                         <Text style={styles.quickActionIcon}>📅</Text>
-                        <Text style={styles.quickActionText}>Book Session</Text>
+                        <Text style={styles.quickActionText}>My Plans</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity

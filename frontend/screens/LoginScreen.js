@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import api from '../services/api';
+import api, { setAuthToken } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -34,17 +36,29 @@ export default function LoginScreen({ navigation }) {
         setLoading(true);
         try {
             const response = await api.post('/user/signin', { email, password });
+            const { token, ...userData } = response.data;
+
+            // Store token so all future API calls are authenticated
+            setAuthToken(token);
+            login(userData, token);
 
             Toast.show({
                 type: 'success',
                 text1: '✅ Welcome Back!',
-                text2: `Signed in as ${response.data?.username || email}`,
+                text2: `Signed in as ${userData?.username || email}`,
                 position: 'top',
             });
 
-            // Short delay so the user sees the toast, then go to Dashboard
+            // Route to the correct dashboard based on role
+            const role = userData?.role || 'patient';
             setTimeout(() => {
-                navigation.replace('Dashboard');
+                if (role === 'admin') {
+                    navigation.replace('AdminDashboard');
+                } else if (role === 'midwife') {
+                    navigation.replace('MidwifeDashboard');
+                } else {
+                    navigation.replace('Dashboard');
+                }
             }, 1000);
         } catch (error) {
             console.error(error);

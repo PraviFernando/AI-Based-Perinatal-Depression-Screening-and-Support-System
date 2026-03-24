@@ -39,12 +39,13 @@ const signup = async (req, res, next) => {
       .status(201)
       .cookie('access_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true in production
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .json({
         message: 'Signup successful',
+        token,                          // ← returned for cross-origin Expo Web use
         user: userWithoutPassword,
       });
   } catch (error) {
@@ -86,7 +87,7 @@ const signin = async (req, res, next) => {
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .json(rest);
+      .json({ ...rest, token });        // ← token also in body for cross-origin clients
   } catch (error) {
     next(error);
   }
