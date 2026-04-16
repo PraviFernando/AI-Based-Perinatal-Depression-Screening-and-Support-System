@@ -13,8 +13,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import api from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function SignupScreen({ navigation }) {
+    const { t, i18n } = useTranslation();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -98,23 +100,29 @@ export default function SignupScreen({ navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <View style={{ position: 'absolute', top: 30, right: 20, zIndex: 10 }}>
+                        <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#EDE9FE', borderRadius: 16 }}>
+                            <Text style={{ fontWeight: 'bold', color: '#7C3AED', fontSize: 14 }}>{i18n.language === 'en' ? 'සිං' : 'EN'}</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Top Banner */}
                     <View style={styles.topBanner}>
                         <Text style={styles.bannerEmoji}>🌸</Text>
-                        <Text style={styles.bannerTitle}>PeriCare</Text>
+                        <Text style={styles.bannerTitle}>{t('PeriCare')}</Text>
                         <Text style={styles.bannerSubtitle}>
-                            Create your account to get started
+                            {t('Create a new account')}
                         </Text>
                     </View>
 
                     {/* Card */}
                     <View style={styles.card}>
-                        <Text style={styles.title}>Create Account</Text>
-                        <Text style={styles.subtitle}>Join PeriCare today</Text>
+                        <Text style={styles.title}>{t('Create Account')}</Text>
+                        <Text style={styles.subtitle}>{t('Join PeriCare today')}</Text>
 
                         {/* Username */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>👤 Username</Text>
+                            <Text style={styles.label}>👤 {t('Username')}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Enter your username"
@@ -128,7 +136,7 @@ export default function SignupScreen({ navigation }) {
 
                         {/* Email */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>📧 Email</Text>
+                            <Text style={styles.label}>📧 {t('Email')}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Enter your email"
@@ -143,7 +151,7 @@ export default function SignupScreen({ navigation }) {
 
                         {/* Password */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>🔒 Password</Text>
+                            <Text style={styles.label}>🔒 {t('Password')}</Text>
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
@@ -166,7 +174,7 @@ export default function SignupScreen({ navigation }) {
 
                         {/* Confirm Password */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>🔒 Confirm Password</Text>
+                            <Text style={styles.label}>🔒 {t('Password')} (Confirm)</Text>
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
@@ -201,15 +209,15 @@ export default function SignupScreen({ navigation }) {
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.buttonText}>Create Account</Text>
+                                <Text style={styles.buttonText}>{t('Create Account')}</Text>
                             )}
                         </TouchableOpacity>
 
                         {/* Login Link */}
                         <View style={styles.footer}>
-                            <Text style={styles.footerText}>Already have an account? </Text>
+                            <Text style={styles.footerText}>{t('Already have an account?')} </Text>
                             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <Text style={styles.link}>Sign In</Text>
+                                <Text style={styles.link}>{t('Sign In')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

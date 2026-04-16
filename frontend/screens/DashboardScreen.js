@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { BarChart, PieChart } from 'react-native-chart-kit';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -178,6 +179,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
 // HEADER COMPONENT
 // ─────────────────────────────────────────────
 function Header({ onMenuPress, onNotifPress }) {
+    const { i18n } = useTranslation();
     return (
         <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuBtn}>
@@ -191,12 +193,20 @@ function Header({ onMenuPress, onNotifPress }) {
                 <Text style={styles.headerTitle}>PeriCare</Text>
             </View>
 
-            <TouchableOpacity onPress={onNotifPress} style={styles.notifBtn}>
-                <Text style={styles.notifIcon}>🔔</Text>
-                <View style={styles.notifBadge}>
-                    <Text style={styles.notifBadgeText}>3</Text>
-                </View>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ marginRight: 15 }}>
+                    <Text style={{ fontWeight: '700', fontSize: 13, color: '#7C3AED', backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                        {i18n.language === 'en' ? 'සිං' : 'EN'}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={onNotifPress} style={styles.notifBtn}>
+                    <Text style={styles.notifIcon}>🔔</Text>
+                    <View style={styles.notifBadge}>
+                        <Text style={styles.notifBadgeText}>3</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -234,6 +244,7 @@ function Footer({ activeTab, onTabPress }) {
 // MAIN DASHBOARD SCREEN
 // ─────────────────────────────────────────────
 export default function DashboardScreen({ navigation }) {
+    const { t } = useTranslation();
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const [activeTab, setActiveTab] = useState('home');
 
@@ -312,9 +323,9 @@ export default function DashboardScreen({ navigation }) {
                 {/* Greeting Banner */}
                 <View style={styles.greetingBanner}>
                     <View style={styles.greetingTextContainer}>
-                        <Text style={styles.greetingHello}>Hello, {mockUser.name.split(' ')[0]} 👋</Text>
-                        <Text style={styles.greetingSubtitle}>Here's your health overview</Text>
-                        <Text style={styles.greetingDate}>Last visit: {mockUser.lastVisit}</Text>
+                        <Text style={styles.greetingHello}>{t('Hello')}, {mockUser.name.split(' ')[0]} 👋</Text>
+                        <Text style={styles.greetingSubtitle}>{t("Here's your health overview")}</Text>
+                        <Text style={styles.greetingDate}>{t('Last visit')}: {mockUser.lastVisit}</Text>
                     </View>
                     <View style={styles.greetingAvatarLarge}>
                         <Text style={styles.greetingAvatarText}>SJ</Text>
@@ -322,15 +333,15 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 {/* Stat Cards */}
-                <Text style={styles.sectionTitle}>Overview</Text>
+                <Text style={styles.sectionTitle}>{t('Overview')}</Text>
                 <View style={styles.statsGrid}>
                     {mockStats.map((stat, i) => (
-                        <StatCard key={i} {...stat} />
+                        <StatCard key={i} {...stat} label={t(stat.label)} />
                     ))}
                 </View>
 
                 {/* Bar Chart */}
-                <Text style={styles.sectionTitle}>Monthly Screening Activity</Text>
+                <Text style={styles.sectionTitle}>{t('Monthly Screening Activity')}</Text>
                 <View style={styles.chartCard}>
                     <BarChart
                         data={barChartData}
@@ -344,7 +355,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 {/* Pie Chart */}
-                <Text style={styles.sectionTitle}>Depression Risk Breakdown</Text>
+                <Text style={styles.sectionTitle}>{t('Depression Risk Breakdown')}</Text>
                 <View style={styles.chartCard}>
                     <PieChart
                         data={pieChartData}
@@ -359,7 +370,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 {/* Progress Bars */}
-                <Text style={styles.sectionTitle}>Wellness Indicators</Text>
+                <Text style={styles.sectionTitle}>{t('Wellness Indicators')}</Text>
                 <View style={styles.progressCard}>
                     {progressData.map((item, i) => (
                         <ProgressBar key={i} {...item} />
@@ -367,7 +378,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 {/* Recent Activity */}
-                <Text style={styles.sectionTitle}>Recent Activity</Text>
+                <Text style={styles.sectionTitle}>{t('Recent Activity')}</Text>
                 <View style={styles.activityCard}>
                     {recentActivities.map((item) => (
                         <View key={item.id} style={styles.activityRow}>
@@ -384,14 +395,14 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 {/* Quick Action Buttons */}
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <Text style={styles.sectionTitle}>{t('Quick Actions')}</Text>
                 <View style={styles.quickActions}>
                     <TouchableOpacity
                         style={[styles.quickActionBtn, { backgroundColor: '#7C3AED' }]}
                         onPress={() => navigation.navigate('Diary')}
                     >
                         <Text style={styles.quickActionIcon}>📔</Text>
-                        <Text style={styles.quickActionText}>My Diary</Text>
+                        <Text style={styles.quickActionText}>{t('My Diary')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -399,7 +410,7 @@ export default function DashboardScreen({ navigation }) {
                         onPress={() => navigation.navigate('Plan')}
                     >
                         <Text style={styles.quickActionIcon}>📅</Text>
-                        <Text style={styles.quickActionText}>My Plans</Text>
+                        <Text style={styles.quickActionText}>{t('My Plans')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -409,7 +420,7 @@ export default function DashboardScreen({ navigation }) {
                         }
                     >
                         <Text style={styles.quickActionIcon}>😊</Text>
-                        <Text style={styles.quickActionText}>Log Mood</Text>
+                        <Text style={styles.quickActionText}>{t('Log Mood')}</Text>
                     </TouchableOpacity>
                 </View>
 

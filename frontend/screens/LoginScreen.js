@@ -14,8 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import api, { setAuthToken } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginScreen({ navigation }) {
+    const { t, i18n } = useTranslation();
     const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -85,23 +87,29 @@ export default function LoginScreen({ navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <View style={{ position: 'absolute', top: 30, right: 20, zIndex: 10 }}>
+                        <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#EDE9FE', borderRadius: 16 }}>
+                            <Text style={{ fontWeight: 'bold', color: '#7C3AED', fontSize: 14 }}>{i18n.language === 'en' ? 'සිං' : 'EN'}</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Decorative top banner */}
                     <View style={styles.topBanner}>
                         <Text style={styles.bannerEmoji}>🌸</Text>
-                        <Text style={styles.bannerTitle}>PeriCare</Text>
+                        <Text style={styles.bannerTitle}>{t('PeriCare')}</Text>
                         <Text style={styles.bannerSubtitle}>
-                            Perinatal Depression Support System
+                            {t('Perinatal Depression Support System')}
                         </Text>
                     </View>
 
                     {/* Card */}
                     <View style={styles.card}>
-                        <Text style={styles.title}>Welcome Back</Text>
-                        <Text style={styles.subtitle}>Sign in to continue</Text>
+                        <Text style={styles.title}>{t('Welcome Back')}</Text>
+                        <Text style={styles.subtitle}>{t('Sign in to continue')}</Text>
 
                         {/* Email */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>📧 Email</Text>
+                            <Text style={styles.label}>📧 {t('Email')}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Enter your email"
@@ -116,7 +124,7 @@ export default function LoginScreen({ navigation }) {
 
                         {/* Password */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>🔒 Password</Text>
+                            <Text style={styles.label}>🔒 {t('Password')}</Text>
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
@@ -161,15 +169,15 @@ export default function LoginScreen({ navigation }) {
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.buttonText}>Sign In</Text>
+                                <Text style={styles.buttonText}>{t('Sign In')}</Text>
                             )}
                         </TouchableOpacity>
 
                         {/* Signup Link */}
                         <View style={styles.footer}>
-                            <Text style={styles.footerText}>Don't have an account? </Text>
+                            <Text style={styles.footerText}>{t('Don\'t have an account?')} </Text>
                             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                                <Text style={styles.link}>Sign Up</Text>
+                                <Text style={styles.link}>{t('Sign Up')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
