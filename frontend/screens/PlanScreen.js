@@ -6,6 +6,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import api from '../services/api';
+import { useTranslation } from 'react-i18next';
+import SinhalaKeyboard from '../components/SinhalaKeyboard';
+import { transliterate } from '../services/sinhalaTransliteration';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -51,6 +54,7 @@ const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${Stri
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PlanScreen({ navigation }) {
+    const { t, i18n } = useTranslation();
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
@@ -73,6 +77,10 @@ export default function PlanScreen({ navigation }) {
     const [customDuration, setCustomDuration] = useState('');
     const [customUseTimer, setCustomUseTimer] = useState(true);
     const [savingCustom, setSavingCustom] = useState(false);
+
+    // Sinhala modes
+    const [sinhalaMode, setSinhalaMode] = useState(false);
+    const [showVisualKeyboard, setShowVisualKeyboard] = useState(false);
 
     // ── Load month data (for calendar colors) ────────────────────────────────
     const loadMonthData = useCallback(async () => {
@@ -311,8 +319,8 @@ export default function PlanScreen({ navigation }) {
 
                 {/* Info */}
                 <View style={s.actInfo}>
-                    <Text style={[s.actName, activity.completed && s.actNameDone]} numberOfLines={1}>{activity.name}</Text>
-                    <Text style={s.actDesc} numberOfLines={1}>{activity.description}</Text>
+                    <Text style={[s.actName, activity.completed && s.actNameDone]} numberOfLines={1}>{t(activity.name)}</Text>
+                    <Text style={s.actDesc} numberOfLines={1}>{t(activity.description)}</Text>
                     {hasTimer && (
                         <Text style={[s.actTimer, { color: activity.color || PURPLE }]}>
                             ⏱ {formatTime(activity.timerSeconds)}
@@ -360,7 +368,7 @@ export default function PlanScreen({ navigation }) {
         return (
             <View key={section.key} style={[s.section, { backgroundColor: section.bg }]}>
                 <View style={s.sectionHeader}>
-                    <Text style={s.sectionLabel}>{section.label}</Text>
+                    <Text style={s.sectionLabel}>{t(section.label)}</Text>
                     <Text style={s.sectionCount}>{done}/{items.length}</Text>
                 </View>
                 {items.map(renderActivityRow)}
@@ -384,10 +392,17 @@ export default function PlanScreen({ navigation }) {
                 </TouchableOpacity>
                 <View style={s.headerCenter}>
                     <Text style={s.headerEmoji}>🌸</Text>
-                    <Text style={s.headerTitle}>Wellness Plan</Text>
+                    <Text style={s.headerTitle}>{t('Wellness Plan')}</Text>
                 </View>
-                <View style={s.headerBadge}>
-                    <Text style={s.headerBadgeText}>{dayTotals.done}/{dayTotals.total}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ marginRight: 10 }}>
+                        <Text style={{ fontWeight: '700', fontSize: 13, color: '#7C3AED', backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                            {i18n.language === 'en' ? 'සිං' : 'EN'}
+                        </Text>
+                    </TouchableOpacity>
+                    <View style={s.headerBadge}>
+                        <Text style={s.headerBadgeText}>{dayTotals.done}/{dayTotals.total}</Text>
+                    </View>
                 </View>
             </View>
 
@@ -535,60 +550,101 @@ export default function PlanScreen({ navigation }) {
                 onRequestClose={() => setCustomModal({ visible: false })}>
                 <View style={s.timerOverlay}>
                     <View style={s.customBox}>
+                        {/* ── Fixed header (never scrolls away) ── */}
                         <Text style={s.customTitle}>＋ Add Custom Activity</Text>
                         <Text style={s.customSubtitle}>Create a personalized wellness activity</Text>
 
-                        <Text style={s.customLabel}>Activity Name*</Text>
-                        <TextInput style={s.customInput} placeholder="e.g. Evening Journaling"
-                            placeholderTextColor="#9CA3AF" value={customName} onChangeText={setCustomName} />
-
-                        <Text style={s.customLabel}>Time of Day</Text>
-                        <View style={s.customTimeRow}>
-                            {['Morning', 'Midday', 'Afternoon', 'Night'].map(t => (
-                                <TouchableOpacity key={t}
-                                    style={[s.customTimeChip, customTimeOfDay === t && s.customTimeChipActive]}
-                                    onPress={() => setCustomTimeOfDay(t)}>
-                                    <Text style={[s.customTimeChipTxt, customTimeOfDay === t && { color: WHITE }]}>{t}</Text>
+                        {/* ── Scrollable body so keyboard is always reachable ── */}
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="always"
+                            contentContainerStyle={{ paddingBottom: 8 }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                                <Text style={[s.customLabel, { marginBottom: 0 }]}>{t('Activity Name*')}</Text>
+                                <TouchableOpacity
+                                    onPress={() => { setSinhalaMode(!sinhalaMode); setShowVisualKeyboard(!sinhalaMode); }}
+                                    style={{ backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}
+                                >
+                                    <Text style={{ fontSize: 12, color: '#7C3AED', fontWeight: 'bold' }}>
+                                        {sinhalaMode ? '🔠 Abc Mode' : '🇱🇰 සිං Mode'}
+                                    </Text>
                                 </TouchableOpacity>
-                            ))}
-                        </View>
+                            </View>
+                            <TextInput
+                                style={s.customInput}
+                                placeholder="e.g. Evening Journaling"
+                                placeholderTextColor="#9CA3AF"
+                                value={customName}
+                                onChangeText={(txt) => setCustomName(sinhalaMode ? transliterate(txt) : txt)}
+                                editable={!showVisualKeyboard}
+                            />
 
-                        <Text style={s.customLabel}>Choose Icon</Text>
-                        <View style={s.iconGrid}>
-                            {ICON_OPTIONS.map(ic => (
-                                <TouchableOpacity key={ic} style={[s.iconCell, customIcon === ic && s.iconCellActive]}
-                                    onPress={() => setCustomIcon(ic)}>
-                                    <Text style={s.iconCellTxt}>{ic}</Text>
+                            {/* Sinhala Visual Keyboard — shown BEFORE action buttons */}
+                            {showVisualKeyboard && (
+                                <SinhalaKeyboard
+                                    onKeyPress={(char) => {
+                                        if (char === 'BACKSPACE') setCustomName(prev => prev.slice(0, -1));
+                                        else if (char === 'SPACE') setCustomName(prev => prev + ' ');
+                                        else setCustomName(prev => prev + char);
+                                    }}
+                                    onClose={() => setShowVisualKeyboard(false)}
+                                />
+                            )}
+
+                            <Text style={[s.customLabel, { marginTop: 10 }]}>Time of Day</Text>
+                            <View style={s.customTimeRow}>
+                                {['Morning', 'Midday', 'Afternoon', 'Night'].map(tod => (
+                                    <TouchableOpacity key={tod}
+                                        style={[s.customTimeChip, customTimeOfDay === tod && s.customTimeChipActive]}
+                                        onPress={() => setCustomTimeOfDay(tod)}>
+                                        <Text style={[s.customTimeChipTxt, customTimeOfDay === tod && { color: WHITE }]}>{tod}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <Text style={s.customLabel}>Choose Icon</Text>
+                            <View style={s.iconGrid}>
+                                {ICON_OPTIONS.map(ic => (
+                                    <TouchableOpacity key={ic} style={[s.iconCell, customIcon === ic && s.iconCellActive]}
+                                        onPress={() => setCustomIcon(ic)}>
+                                        <Text style={s.iconCellTxt}>{ic}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <Text style={s.customLabel}>Suggested Duration (min, optional)</Text>
+                            <TextInput
+                                style={s.customInput}
+                                placeholder="e.g. 15"
+                                placeholderTextColor="#9CA3AF"
+                                value={customDuration}
+                                onChangeText={setCustomDuration}
+                                keyboardType="numeric"
+                            />
+
+                            <View style={s.customTimerToggle}>
+                                <Text style={s.customLabel}>Enable Stopwatch?</Text>
+                                <TouchableOpacity
+                                    style={[s.toggleBtn, customUseTimer && s.toggleBtnActive]}
+                                    onPress={() => setCustomUseTimer(!customUseTimer)}
+                                >
+                                    <View style={[s.toggleDot, customUseTimer && s.toggleDotActive]} />
                                 </TouchableOpacity>
-                            ))}
-                        </View>
+                            </View>
 
-                        <Text style={s.customLabel}>Suggested Duration (min, optional)</Text>
-                        <TextInput style={s.customInput} placeholder="e.g. 15"
-                            placeholderTextColor="#9CA3AF" value={customDuration}
-                            onChangeText={setCustomDuration} keyboardType="numeric" />
-
-                        <View style={s.customTimerToggle}>
-                            <Text style={s.customLabel}>Enable Stopwatch?</Text>
-                            <TouchableOpacity
-                                style={[s.toggleBtn, customUseTimer && s.toggleBtnActive]}
-                                onPress={() => setCustomUseTimer(!customUseTimer)}
-                            >
-                                <View style={[s.toggleDot, customUseTimer && s.toggleDotActive]} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={s.customActions}>
-                            <TouchableOpacity style={s.customCancelBtn} onPress={() => setCustomModal({ visible: false })}>
-                                <Text style={s.customCancelTxt}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={s.customSaveBtn} onPress={saveCustomActivity} disabled={savingCustom}>
-                                {savingCustom
-                                    ? <ActivityIndicator color={WHITE} size="small" />
-                                    : <Text style={s.customSaveTxt}>Add Activity</Text>
-                                }
-                            </TouchableOpacity>
-                        </View>
+                            <View style={s.customActions}>
+                                <TouchableOpacity style={s.customCancelBtn} onPress={() => setCustomModal({ visible: false })}>
+                                    <Text style={s.customCancelTxt}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={s.customSaveBtn} onPress={saveCustomActivity} disabled={savingCustom}>
+                                    {savingCustom
+                                        ? <ActivityIndicator color={WHITE} size="small" />
+                                        : <Text style={s.customSaveTxt}>Add Activity</Text>
+                                    }
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
@@ -753,7 +809,7 @@ const s = StyleSheet.create({
     timerCloseTxt: { fontSize: 12, color: '#9CA3AF', textDecorationLine: 'underline' },
 
     // Custom Activity Modal
-    customBox: { backgroundColor: WHITE, borderRadius: 24, padding: 24, width: 360, maxHeight: '90%' },
+    customBox: { backgroundColor: WHITE, borderRadius: 24, padding: 24, width: '92%', maxWidth: 420, maxHeight: '92%', alignSelf: 'center' },
     customTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 4 },
     customSubtitle: { fontSize: 13, color: '#6B7280', marginBottom: 20 },
     customLabel: { fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 6 },
