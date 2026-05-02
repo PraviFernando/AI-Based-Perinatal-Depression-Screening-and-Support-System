@@ -1,0 +1,10 @@
+{"audio_file": "sample1.wav", "sentence": "මට අද ගොඩක් සතුටුයි.", "context": "general"}
+{"audio_file": "sample2.wav", "sentence": "බබා ලැබුණට පස්සේ මට ලොකු තනිකමක් දැනෙනවා.", "context": "postpartum"}
+{"audio_file": "sample3.wav", "sentence": "මට රෑට නින්ද යන්නේ නැහැ.", "context": "symptom"}
+{"audio_file": "sample4.wav", "sentence": "ක්ලිනික් එකට කවද්ද යන්න ඕනේ?", "context": "medical"}
+{"audio_file": "sample5.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවීමට අවශ්‍යයි.", "context": "midwife"}
+{"audio_file": "sample6.wav", "sentence": "බඩේ කැක්කුමක් එනවා වගේ දැනෙනවා.", "context": "symptom"}
+{"audio_file": "sample7.wav", "sentence": "විටමින් පෙති ටික බිව්වා.", "context": "medical"}
+{"audio_file": "sample8.wav", "sentence": "අද මම ගොඩක් මහන්සියෙන් ඉන්නේ.", "context": "general"}
+{"audio_file": "sample9.wav", "sentence": "මගේ හිතට ලොකු බයක් දැනෙනවා.", "context": "anxiety"}
+{"audio_file": "sample10.wav", "sentence": "මම හිතන්නේ මට උදව් කරන්න කෙනෙක් ඕනේ.", "context": "support"}
