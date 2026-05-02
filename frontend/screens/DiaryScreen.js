@@ -105,6 +105,9 @@ export default function DiaryScreen({ navigation }) {
     const [allDates, setAllDates] = useState([]);
     const [stats, setStats] = useState({ totalJournals: 0, totalWords: 0 });
 
+    const [allJournalsModalVisible, setAllJournalsModalVisible] = useState(false);
+    const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+
     // Auth & Lock
     const [isUnlocked, setIsUnlocked] = useState(true);
     const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -358,6 +361,12 @@ export default function DiaryScreen({ navigation }) {
         setIsListening(false);
     };
 
+    const handleVisualKeyPress = (char) => {
+        const newContent = content + char;
+        setContent(newContent);
+        handleContentChange(newContent);
+    };
+
     const tc = THEMES[currentTheme] || THEMES['default'];
 
     return (
@@ -369,9 +378,16 @@ export default function DiaryScreen({ navigation }) {
                         <Text style={[s.backIcon, { color: tc.text }]}>←</Text>
                     </TouchableOpacity>
                     <View style={s.headerCenter}>
-                        <Text style={[s.headerTitle, { color: tc.text }]}>{t('AI Journal')}</Text>
+                        <Text style={[s.headerTitle, { color: tc.text }]}>{t('My Diary')}</Text>
                     </View>
-                    <View style={s.backBtn} /> {/* Balancer */}
+                    <TouchableOpacity 
+                        onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} 
+                        style={s.langBtn}
+                    >
+                        <Text style={[s.langText, { color: tc.text, backgroundColor: tc.accent + '33' }]}>
+                            {i18n.language === 'en' ? 'සිං' : 'EN'}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
@@ -385,10 +401,12 @@ export default function DiaryScreen({ navigation }) {
                     </View>
 
                     <View style={s.statsCardsRow}>
-                        <LinearGradient colors={['#FF9A9E', '#FECFEF']} style={s.statCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                            <Text style={s.statNumber}>{stats.totalJournals}</Text>
-                            <Text style={s.statLabel}>{t('Total Journals')}</Text>
-                        </LinearGradient>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setAllJournalsModalVisible(true)}>
+                            <LinearGradient colors={['#FF9A9E', '#FECFEF']} style={s.statCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                                <Text style={s.statNumber}>{stats.totalJournals}</Text>
+                                <Text style={s.statLabel}>{t('Total Journals')}</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
                         <LinearGradient colors={['#fbc2eb', '#a6c1ee']} style={s.statCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                             <Text style={s.statNumber}>{stats.totalWords}</Text>
                             <Text style={s.statLabel}>{t('Total Words')}</Text>
@@ -400,9 +418,11 @@ export default function DiaryScreen({ navigation }) {
                     </View>
 
                     {/* ── Calendar Strip ── */}
-                    <View style={s.calendarMonthWrap}>
-                        <Text style={[s.calendarMonthTitle, { color: tc.text }]}>{t(getMonthName(selectedDate))} {selectedDate.split('-')[0]}</Text>
-                    </View>
+                    <TouchableOpacity style={s.calendarMonthWrap} onPress={() => setMonthPickerVisible(true)}>
+                        <Text style={[s.calendarMonthTitle, { color: tc.text }]}>
+                            {t(getMonthName(selectedDate))} {selectedDate.split('-')[0]} ▾
+                        </Text>
+                    </TouchableOpacity>
                     <View style={s.calendarContainer}>
                         {[-3, -2, -1, 0, 1, 2, 3].map(offset => {
                             const d = new Date(selectedDate);
@@ -574,6 +594,65 @@ export default function DiaryScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
+
+            {/* Month Picker Modal */}
+            <Modal visible={monthPickerVisible} transparent animationType="fade">
+                <View style={s.modalOverlay}>
+                    <View style={s.monthPickerBox}>
+                        <Text style={s.modalTitle}>{t('Select Month')}</Text>
+                        <ScrollView style={{ maxHeight: 300 }}>
+                            {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, idx) => (
+                                <TouchableOpacity
+                                    key={m}
+                                    style={s.monthOption}
+                                    onPress={() => {
+                                        const newDate = `${new Date().getFullYear()}-${String(idx + 1).padStart(2, '0')}-01`;
+                                        setSelectedDate(newDate);
+                                        setMonthPickerVisible(false);
+                                    }}
+                                >
+                                    <Text style={s.monthOptionText}>{t(m)}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <TouchableOpacity style={s.modalCancel} onPress={() => setMonthPickerVisible(false)}>
+                            <Text style={s.modalCancelText}>{t('Cancel')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* All Journals Modal */}
+            <Modal visible={allJournalsModalVisible} animationType="slide" transparent>
+                <View style={s.fullModalOverlay}>
+                    <View style={s.fullModalBox}>
+                        <View style={s.fullModalHeader}>
+                            <Text style={s.fullModalTitle}>{t('All Journals')}</Text>
+                            <TouchableOpacity onPress={() => setAllJournalsModalVisible(false)}><Text style={s.fullModalClose}>✕</Text></TouchableOpacity>
+                        </View>
+                        <ScrollView style={{ flex: 1 }}>
+                            {allDates.length === 0 && <Text style={s.emptyListText}>{t('No journals found.')}</Text>}
+                            {allDates.map((item, idx) => (
+                                <TouchableOpacity 
+                                    key={idx} 
+                                    style={s.journalListItem}
+                                    onPress={() => {
+                                        setSelectedDate(item.date);
+                                        setAllJournalsModalVisible(false);
+                                    }}
+                                >
+                                    <View>
+                                        <Text style={s.journalListDate}>{formatDisplay(item.date)}</Text>
+                                        <Text style={s.journalListDay}>{getDayName(item.date)}</Text>
+                                    </View>
+                                    <Text style={s.journalListIcon}>📔</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+
             {showVisualKeyboard && <SinhalaKeyboard onKeyPress={handleVisualKeyPress} onClose={() => setShowVisualKeyboard(false)} />}
             <Toast />
         </LinearGradient>
@@ -661,4 +740,22 @@ const s = StyleSheet.create({
     modalCancelText: { color: '#64748B', fontWeight: '700', fontSize: 15 },
     modalConfirm: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
     modalConfirmText: { color: '#FFF', fontWeight: '800', fontSize: 15 },
+
+    langBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
+    langText: { fontSize: 13, fontWeight: '700', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
+
+    fullModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+    fullModalBox: { backgroundColor: '#FFF', borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '80%', padding: 24 },
+    fullModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    fullModalTitle: { fontSize: 22, fontWeight: '800', color: '#1E293B' },
+    fullModalClose: { fontSize: 24, color: '#64748B' },
+    journalListItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    journalListDate: { fontSize: 16, fontWeight: '700', color: '#1E293B' },
+    journalListDay: { fontSize: 12, color: '#64748B', marginTop: 2 },
+    journalListIcon: { fontSize: 20 },
+    emptyListText: { textAlign: 'center', marginTop: 40, color: '#64748B', fontSize: 16 },
+
+    monthPickerBox: { backgroundColor: '#FFF', borderRadius: 24, padding: 24, width: 300 },
+    monthOption: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    monthOptionText: { fontSize: 16, fontWeight: '600', color: '#1E293B', textAlign: 'center' },
 });
