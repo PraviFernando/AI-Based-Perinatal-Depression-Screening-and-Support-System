@@ -83,4 +83,88 @@ const updatePlanStatus = async (req, res, next) => {
     }
 };
 
-module.exports = { getOrCreatePlan, getPlanDetails, saveDetail, updateDetail, updatePlanStatus };
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY-RELATED METHODS (Embedded in PlanDetail)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// POST /plan/activity - Upsert an activity inside a PlanDetail
+const upsertActivity = async (req, res, next) => {
+    try {
+        const { date, activityId, activityName, timeOfDay, icon, completed, timerSeconds, isCustom, note } = req.body;
+        const userId = req.user.id;
+        const [year, month] = date.split('-').map(Number);
+
+        let plan = await Plan.findOne({ userId, year, month });
+        if (!plan) plan = await Plan.create({ userId, year, month });
+
+        let detail = await PlanDetail.findOne({ planId: plan._id, date });
+        if (!detail) detail = await PlanDetail.create({ planId: plan._id, date, activities: [] });
+
+        const activityIndex = detail.activities.findIndex(a => a.activityId === activityId);
+        const activityData = { activityId, activityName, timeOfDay, icon, completed, timerSeconds, isCustom, note };
+
+        if (activityIndex > -1) {
+            detail.activities[activityIndex] = activityData;
+        } else {
+            detail.activities.push(activityData);
+        }
+
+        await detail.save();
+        res.status(200).json({ message: 'Activity updated', record: activityData });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /plan/activity/month/:year/:month
+const getMonthActivities = async (req, res, next) => {
+    try {
+        const { year, month } = req.params;
+        const userId = req.user.id;
+
+        const plan = await Plan.findOne({ userId, year: Number(year), month: Number(month) });
+        if (!plan) return res.status(200).json([]);
+
+        const details = await PlanDetail.find({ planId: plan._id });
+        const allActivities = details.reduce((acc, d) => {
+            const dateActivities = d.activities.map(a => ({
+                ...a.toObject(),
+                date: d.date,
+                _id: a._id // keep the subdoc ID
+            }));
+            return [...acc, ...dateActivities];
+        }, []);
+
+        res.status(200).json(allActivities);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /plan/activity/date/:date
+const getDateActivities = async (req, res, next) => {
+    try {
+        const { date } = req.params;
+        const userId = req.user.id;
+        const [year, month] = date.split('-').map(Number);
+
+        const plan = await Plan.findOne({ userId, year, month });
+        if (!plan) return res.status(200).json([]);
+
+        const detail = await PlanDetail.findOne({ planId: plan._id, date });
+        res.status(200).json(detail ? detail.activities : []);
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { 
+    getOrCreatePlan, 
+    getPlanDetails, 
+    saveDetail, 
+    updateDetail, 
+    updatePlanStatus,
+    upsertActivity,
+    getMonthActivities,
+    getDateActivities
+};

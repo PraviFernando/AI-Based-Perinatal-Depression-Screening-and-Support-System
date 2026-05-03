@@ -20,6 +20,16 @@ const planDetailSchema = new mongoose.Schema(
             enum: ['Draft', 'Saved'],
             default: 'Draft',
         },
+        activities: [{
+            activityId: { type: String, required: true },
+            activityName: { type: String, required: true },
+            timeOfDay: { type: String, required: true },
+            icon: { type: String },
+            completed: { type: Boolean, default: false },
+            timerSeconds: { type: Number, default: 0 },
+            isCustom: { type: Boolean, default: false },
+            note: { type: String, default: '' }
+        }]
     },
     { timestamps: true }
 );
