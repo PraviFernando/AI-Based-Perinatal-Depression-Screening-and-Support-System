@@ -16,7 +16,15 @@ const getMidwifeStats = async (req, res, next) => {
 // GET /midwife/patients
 const getPatients = async (req, res, next) => {
     try {
-        const patients = await User.find({ role: 'patient' })
+        const midwife = await User.findById(req.user.id);
+        const query = { role: 'patient' };
+        
+        // If midwife has a village, only show patients from that village
+        if (midwife && midwife.village) {
+            query.village = midwife.village;
+        }
+
+        const patients = await User.find(query)
             .select('-password')
             .sort({ createdAt: -1 });
         res.json(patients);
