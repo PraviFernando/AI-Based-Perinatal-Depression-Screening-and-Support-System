@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
-    ScrollView, ActivityIndicator, Modal, FlatList, Alert,
+    ScrollView, ActivityIndicator, Modal, FlatList, Alert, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import SinhalaKeyboard from '../components/SinhalaKeyboard';
@@ -35,10 +36,10 @@ const DEFAULT_ACTIVITIES = [
 ];
 
 const TIME_SECTIONS = [
-    { key: 'Morning', label: '🌅 Morning', bg: '#FFFBEB' },
-    { key: 'Midday', label: '☀️ Midday', bg: '#F0F9FF' },
-    { key: 'Afternoon', label: '🌤️ Afternoon', bg: '#F5F3FF' },
-    { key: 'Night', label: '🌙 Night', bg: '#EFF6FF' },
+    { key: 'Morning', label: '🌅 Morning', bg: '#FFFBEB', accent: '#F59E0B' },
+    { key: 'Midday', label: '☀️ Midday', bg: '#F0F9FF', accent: '#0EA5E9' },
+    { key: 'Afternoon', label: '🌤️ Afternoon', bg: '#F5F3FF', accent: '#8B5CF6' },
+    { key: 'Night', label: '🌙 Night', bg: '#EFF6FF', accent: '#1D4ED8' },
 ];
 
 const ICON_OPTIONS = ['🧘', '🏃', '🎨', '📚', '💬', '🥗', '🛁', '😴', '🌸', '💊', '🎵', '🌳', '✍️', '🧶', '☕', '🏊', '🌬️', '🧹', '🌻', '💆'];
@@ -59,6 +60,7 @@ export default function PlanScreen({ navigation }) {
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [selectedDate, setSelectedDate] = useState(todayStr);
+    const [showFullCalendar, setShowFullCalendar] = useState(false);
 
     const [monthRecords, setMonthRecords] = useState([]);
     const [dayRecords, setDayRecords] = useState([]);
@@ -69,23 +71,24 @@ export default function PlanScreen({ navigation }) {
     const timerRef = useRef(null);
     const [timer, setTimer] = useState({ visible: false, activity: null, seconds: 0, running: false });
 
-    // Custom activity modal
-    const [customModal, setCustomModal] = useState({ visible: false });
-    const [customName, setCustomName] = useState('');
-    const [customTimeOfDay, setCustomTimeOfDay] = useState('Morning');
-    const [customIcon, setCustomIcon] = useState('🌟');
-    const [customDuration, setCustomDuration] = useState('');
-    const [customUseTimer, setCustomUseTimer] = useState(true);
-    const [savingCustom, setSavingCustom] = useState(false);
-
     // Sinhala modes
     const [sinhalaMode, setSinhalaMode] = useState(false);
     const [showVisualKeyboard, setShowVisualKeyboard] = useState(false);
 
+    // Custom activity modal
+    const [showCustomModal, setShowCustomModal] = useState(false);
+    const [customForm, setCustomForm] = useState({
+        name: '', nameDesc: '', icon: '🌟', timeOfDay: 'Morning', useTimer: false,
+    });
+    const [savingCustom, setSavingCustom] = useState(false);
+    const [customNameSinhalaMode, setCustomNameSinhalaMode] = useState(false);
+    const [customDescSinhalaMode, setCustomDescSinhalaMode] = useState(false);
+    const [activeField, setActiveField] = useState(null); // 'name' | 'desc'
+
     // ── Load month data (for calendar colors) ────────────────────────────────
     const loadMonthData = useCallback(async () => {
         try {
-            const res = await api.get(`/activity/month/${year}/${month}`);
+            const res = await api.get(`/plan/activity/month/${year}/${month}`);
             setMonthRecords(res.data || []);
         } catch (_) { }
     }, [year, month]);
@@ -94,7 +97,7 @@ export default function PlanScreen({ navigation }) {
     const loadDayData = useCallback(async (date) => {
         setLoadingDay(true);
         try {
-            const res = await api.get(`/activity/date/${date}`);
+            const res = await api.get(`/plan/activity/date/${date}`);
             setDayRecords(res.data || []);
         } catch (_) {
             setDayRecords([]);
@@ -109,18 +112,29 @@ export default function PlanScreen({ navigation }) {
     // Cleanup timer on unmount
     useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-    // ── Merged activities (defaults + saved records + custom) ─────────────────
+    // ── Merged activities (defaults + saved records) ─────────────────
     const mergedActivities = useMemo(() => {
         const defaults = DEFAULT_ACTIVITIES.map(act => {
-            const rec = dayRecords.find(r => r.activityId === act.id && !r.isCustom);
+            const rec = dayRecords.find(r => r.activityId === act.id);
             return { ...act, _recId: rec?._id || null, completed: rec?.completed || false, timerSeconds: rec?.timerSeconds || 0, isCustom: false };
         });
-        const customs = dayRecords.filter(r => r.isCustom).map(r => ({
-            id: r.activityId, name: r.activityName, timeOfDay: r.timeOfDay, icon: r.icon,
-            suggestedMin: r.note ? parseInt(r.note) : 0, description: 'Custom activity', color: '#6B7280',
-            useTimer: r.timerSeconds !== -1, // Use -1 as a flag for "no timer" in DB if needed, but for now let's just use a Note or check if it's stored.
-            _recId: r._id, completed: r.completed, timerSeconds: r.timerSeconds || 0, isCustom: true,
-        }));
+        // Append custom activities saved for this day
+        const customs = dayRecords
+            .filter(r => r.isCustom)
+            .map(r => ({
+                id: r.activityId,
+                name: r.activityName,
+                timeOfDay: r.timeOfDay,
+                icon: r.icon || '🌟',
+                suggestedMin: 0,
+                useTimer: false,
+                description: r.note || '',
+                color: '#9C27B0',
+                _recId: r._id,
+                completed: r.completed,
+                timerSeconds: r.timerSeconds || 0,
+                isCustom: true,
+            }));
         return [...defaults, ...customs];
     }, [dayRecords]);
 
@@ -128,17 +142,29 @@ export default function PlanScreen({ navigation }) {
     const completionByDate = useMemo(() => {
         const map = {};
         monthRecords.forEach(r => {
-            if (!map[r.date]) map[r.date] = { completed: 0, total: 0 };
-            map[r.date].total++;
-            if (r.completed) map[r.date].completed++;
+            const ds = r.date;
+            if (!map[ds]) {
+                map[ds] = { completed: 0, customs: 0 };
+            }
+            if (r.completed) map[ds].completed++;
+            if (r.isCustom) map[ds].customs++;
         });
-        return map;
+        // Convert to final structure with total
+        const finalMap = {};
+        Object.keys(map).forEach(ds => {
+            finalMap[ds] = {
+                completed: map[ds].completed,
+                total: DEFAULT_ACTIVITIES.length + map[ds].customs
+            };
+        });
+        return finalMap;
     }, [monthRecords]);
 
     const getDayStatus = (dateStr) => {
         const d = completionByDate[dateStr];
-        if (!d || d.total === 0) return 'none';
-        const pct = d.completed / DEFAULT_ACTIVITIES.length; // relative to all 10 defaults
+        const total = d ? d.total : DEFAULT_ACTIVITIES.length;
+        if (!d || total === 0) return 'none';
+        const pct = d.completed / total;
         if (pct >= 0.8) return 'great';
         if (pct >= 0.4) return 'good';
         return 'started';
@@ -165,7 +191,7 @@ export default function PlanScreen({ navigation }) {
         });
 
         try {
-            await api.post('/activity', {
+            await api.post('/plan/activity', {
                 date: selectedDate, activityId: activity.id, activityName: activity.name,
                 timeOfDay: activity.timeOfDay, icon: activity.icon, completed: newCompleted,
                 timerSeconds: activity.timerSeconds || 0, isCustom: !!activity.isCustom,
@@ -174,10 +200,66 @@ export default function PlanScreen({ navigation }) {
         } catch (err) {
             // Revert
             setDayRecords(prev => prev.map(r => r.activityId === activity.id ? { ...r, completed: !newCompleted } : r));
-            Toast.show({ type: 'error', text1: 'Save Failed', text2: 'Could not update activity.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Save Failed'), text2: t('Could not update activity.'), position: 'top' });
         } finally {
             setSavingId(null);
         }
+    };
+
+    // ── Save custom activity ─────────────────────────────────────────────────
+    const saveCustomActivity = async () => {
+        if (!customForm.name.trim()) {
+            Toast.show({ type: 'error', text1: t('Name Required'), text2: t('Please enter an activity name.'), position: 'top' });
+            return;
+        }
+        setSavingCustom(true);
+        try {
+            const activityId = `custom_${Date.now()}`;
+            await api.post('/plan/activity', {
+                date: selectedDate,
+                activityId,
+                activityName: customForm.name.trim(),
+                timeOfDay: customForm.timeOfDay,
+                icon: customForm.icon,
+                completed: false,
+                timerSeconds: 0,
+                isCustom: true,
+                note: customForm.nameDesc.trim(),
+            });
+            await loadDayData(selectedDate);
+            setShowCustomModal(false);
+            setCustomForm({ name: '', nameDesc: '', icon: '🌟', timeOfDay: 'Morning', useTimer: false });
+            setActiveField(null);
+            Toast.show({ type: 'success', text1: t('Activity Added'), text2: `"${customForm.name.trim()}" ${t('added to your plan.')}`, position: 'top' });
+        } catch (_) {
+            Toast.show({ type: 'error', text1: t('Save Failed'), text2: t('Could not save.'), position: 'top' });
+        } finally {
+            setSavingCustom(false);
+        }
+    };
+
+    // ── Delete custom activity ───────────────────────────────────────────────
+    const deleteCustomActivity = async (activity) => {
+        if (!activity._recId) return;
+        try {
+            await api.delete(`/plan/activity/${activity._recId}`);
+            setDayRecords(prev => prev.filter(r => r._id !== activity._recId));
+            Toast.show({ type: 'success', text1: t('Deleted'), text2: t('Custom activity removed.'), position: 'top' });
+        } catch (_) {
+            Toast.show({ type: 'error', text1: t('Delete Failed'), text2: t('Could not remove activity.'), position: 'top' });
+        }
+    };
+
+    // ── Sinhala keyboard handler for custom modal fields ─────────────────────
+    const handleSinhalaKey = (char) => {
+        const field = activeField;
+        if (!field) return;
+        setCustomForm(prev => {
+            const cur = prev[field];
+            if (char === 'BACKSPACE') return { ...prev, [field]: cur.slice(0, -1) };
+            if (char === 'SPACE') return { ...prev, [field]: cur + ' ' };
+            return { ...prev, [field]: cur + char };
+        });
     };
 
     // ── Timer controls ────────────────────────────────────────────────────────
@@ -213,7 +295,7 @@ export default function PlanScreen({ navigation }) {
         const shouldComplete = seconds > 0 || activity.completed;
 
         try {
-            await api.post('/activity', {
+            await api.post('/plan/activity', {
                 date: selectedDate, activityId: activity.id, activityName: activity.name,
                 timeOfDay: activity.timeOfDay, icon: activity.icon,
                 completed: shouldComplete, timerSeconds: seconds, isCustom: !!activity.isCustom,
@@ -226,64 +308,15 @@ export default function PlanScreen({ navigation }) {
                     icon: activity.icon, completed: shouldComplete, timerSeconds: seconds, isCustom: !!activity.isCustom, date: selectedDate
                 }];
             });
-            Toast.show({ type: 'success', text1: '⏱ Timer Saved', text2: `${formatTime(seconds)} recorded & marked done!`, position: 'top' });
+            Toast.show({ type: 'success', text1: t('Timer Saved'), text2: `${formatTime(seconds)} ${t('recorded & marked done!')}`, position: 'top' });
             loadMonthData(); // Update calendar
         } catch (_) {
-            Toast.show({ type: 'error', text1: 'Timer Save Failed', text2: 'Could not save timer.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Timer Save Failed'), text2: t('Could not save timer.'), position: 'top' });
         }
     };
 
-    // ── Custom activity ───────────────────────────────────────────────────────
-    const openCustomModal = () => {
-        setCustomName(''); setCustomTimeOfDay('Morning'); setCustomIcon('🌟'); setCustomDuration(''); setCustomUseTimer(true);
-        setCustomModal({ visible: true });
-    };
-
-    const saveCustomActivity = async () => {
-        if (!customName.trim()) {
-            Toast.show({ type: 'error', text1: 'Name Required', text2: 'Please enter an activity name.', position: 'top' });
-            return;
-        }
-        setSavingCustom(true);
-        const activityId = `custom_${Date.now()}`;
-        try {
-            const res = await api.post('/activity', {
-                date: selectedDate, activityId, activityName: customName.trim(),
-                timeOfDay: customTimeOfDay, icon: customIcon, completed: false,
-                timerSeconds: customUseTimer ? 0 : -1, // Use -1 as flag for "no timer"
-                isCustom: true,
-                note: customDuration || '0', // Storing suggested duration in note for now
-            });
-            setDayRecords(prev => [...prev, res.data.record]);
-            setCustomModal({ visible: false });
-            Toast.show({ type: 'success', text1: '✅ Activity Added', text2: `"${customName.trim()}" added to your plan.`, position: 'top' });
-        } catch (err) {
-            Toast.show({ type: 'error', text1: 'Save Failed', text2: err.response?.data?.message || 'Could not save.', position: 'top' });
-        } finally {
-            setSavingCustom(false);
-        }
-    };
-
-    const deleteCustomActivity = (activity) => {
-        if (!activity._recId) return;
-        Alert.alert('Delete Activity', `Remove "${activity.name}" from today?`, [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete', style: 'destructive',
-                onPress: async () => {
-                    try {
-                        await api.delete(`/activity/${activity._recId}`);
-                        setDayRecords(prev => prev.filter(r => r.activityId !== activity.id));
-                        Toast.show({ type: 'success', text1: 'Deleted', text2: 'Custom activity removed.', position: 'top' });
-                    } catch (_) {
-                        Toast.show({ type: 'error', text1: 'Delete Failed', position: 'top' });
-                    }
-                },
-            },
-        ]);
-    };
-
-    // ── Month navigation ──────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Month navigation ──────────────────────────────────────────────────────
     const goMonth = (delta) => {
         let m = month + delta, y = year;
         if (m > 12) { m = 1; y += 1; }
@@ -292,6 +325,22 @@ export default function PlanScreen({ navigation }) {
     };
 
     // ── Calendar cells ────────────────────────────────────────────────────────
+    const getWeekDays = (baseDate) => {
+        const d = new Date(baseDate);
+        const day = d.getDay();
+        const diff = d.getDate() - day;
+        const startOfWeek = new Date(d.setDate(diff));
+        
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(startOfWeek);
+            date.setDate(date.getDate() + i);
+            days.push(toDateStr(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        }
+        return days;
+    };
+
+    // ── Render helpers ────────────────────────────────────────────────────────
     const calCells = useMemo(() => {
         const first = firstDay(year, month);
         const days = daysInMo(year, month);
@@ -301,7 +350,6 @@ export default function PlanScreen({ navigation }) {
         return cells;
     }, [year, month]);
 
-    // ── Render helpers ────────────────────────────────────────────────────────
     const renderActivityRow = (activity) => {
         const isSaving = savingId === activity.id;
         const hasTimer = activity.timerSeconds > 0;
@@ -363,7 +411,6 @@ export default function PlanScreen({ navigation }) {
 
     const renderSection = (section) => {
         const items = mergedActivities.filter(a => a.timeOfDay === section.key);
-        if (items.length === 0) return null;
         const done = items.filter(a => a.completed).length;
         return (
             <View key={section.key} style={[s.section, { backgroundColor: section.bg }]}>
@@ -384,7 +431,8 @@ export default function PlanScreen({ navigation }) {
     const timerPct = timerTarget > 0 ? Math.min(1, timer.seconds / timerTarget) : 0;
 
     return (
-        <SafeAreaView style={s.safe}>
+        <LinearGradient colors={['#F5F3FF', '#FFFFFF']} style={{ flex: 1 }}>
+        <SafeAreaView style={[s.safe, { backgroundColor: 'transparent' }]}>
             {/* ── Header ── */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
@@ -407,55 +455,90 @@ export default function PlanScreen({ navigation }) {
             </View>
 
             <ScrollView style={s.body} showsVerticalScrollIndicator={false}>
-                {/* Month Navigator */}
-                <View style={s.monthNav}>
-                    <TouchableOpacity onPress={() => goMonth(-1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>‹</Text></TouchableOpacity>
-                    <Text style={s.monthLabel}>{MONTHS[month - 1]} {year}</Text>
-                    <TouchableOpacity onPress={() => goMonth(1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>›</Text></TouchableOpacity>
+                {/* ── Relaxing Message ── */}
+                <View style={s.relaxHeader}>
+                    <Text style={s.relaxTitle}>{t('Your Gentle Path')}</Text>
+                    <Text style={s.relaxSub}>{t("One step at a time, you're doing great.")}</Text>
                 </View>
 
-                {/* Calendar */}
-                <View style={s.calCard}>
-                    <View style={s.calRow}>
-                        {DAYS_SHORT.map(d => <Text key={d} style={s.calDayHdr}>{d}</Text>)}
+                {/* ── Weekly Strip Calendar ── */}
+                <View style={s.weeklyStrip}>
+                    <View style={s.weeklyStripHeader}>
+                        <Text style={s.weeklyStripMonth}>{MONTHS[month - 1]} {year}</Text>
+                        <TouchableOpacity onPress={() => setShowFullCalendar(!showFullCalendar)}>
+                            <Text style={s.fullCalToggle}>{showFullCalendar ? '↑ Hide' : '↓ Full Calendar'}</Text>
+                        </TouchableOpacity>
                     </View>
-                    <View style={s.calGrid}>
-                        {calCells.map((day, idx) => {
-                            if (!day) return <View key={`e${idx}`} style={s.calCell} />;
-                            const ds = toDateStr(year, month, day);
-                            const status = getDayStatus(ds);
-                            const isToday = ds === todayStr;
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.weekScroll}>
+                        {getWeekDays(selectedDate).map(ds => {
+                            const dateObj = new Date(ds);
                             const isSelected = ds === selectedDate;
-                            const cellBg = isSelected ? PURPLE
-                                : isToday ? '#EDE9FE'
-                                    : status === 'great' ? '#6EE7B7'
-                                        : status === 'good' ? '#A7F3D0'
-                                            : status === 'started' ? '#FEF3C7'
-                                                : 'transparent';
+                            const isToday = ds === todayStr;
+                            const status = getDayStatus(ds);
+                            
                             return (
-                                <TouchableOpacity key={ds} style={[s.calCell, s.calDayCell, { backgroundColor: cellBg }]}
-                                    onPress={() => setSelectedDate(ds)}>
-                                    <Text style={[s.calDayNum,
-                                    isSelected && { color: WHITE, fontWeight: '800' },
-                                    isToday && !isSelected && { color: PURPLE, fontWeight: '700' },
-                                    ]}>{day}</Text>
-                                    {status !== 'none' && !isSelected && (
-                                        <View style={[s.calDot, {
-                                            backgroundColor: status === 'great' ? '#059669' : status === 'good' ? '#10B981' : '#F59E0B'
-                                        }]} />
-                                    )}
+                                <TouchableOpacity 
+                                    key={ds} 
+                                    style={[s.weekDay, isSelected && s.weekDaySelected]}
+                                    onPress={() => setSelectedDate(ds)}
+                                >
+                                    <Text style={[s.weekDayName, isSelected && { color: WHITE }]}>{DAYS_SHORT[dateObj.getDay()]}</Text>
+                                    <Text style={[s.weekDayNum, isSelected && { color: WHITE }]}>{dateObj.getDate()}</Text>
+                                    <Text style={[s.weekCount, isSelected && { color: WHITE }]}>
+                                        {completionByDate[ds] ? `${completionByDate[ds].completed}/${completionByDate[ds].total}` : `0/${DEFAULT_ACTIVITIES.length}`}
+                                    </Text>
                                 </TouchableOpacity>
                             );
                         })}
-                    </View>
-                    {/* Legend */}
-                    <View style={s.legend}>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#4014b7ff' }]} /><Text style={s.legendTxt}>Selected</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#F59E0B' }]} /><Text style={s.legendTxt}>Started</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#10B981' }]} /><Text style={s.legendTxt}>Good</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#7b0c6eff' }]} /><Text style={s.legendTxt}>Great</Text></View>
-                    </View>
+                    </ScrollView>
                 </View>
+
+                {/* Full Calendar (Conditional) */}
+                {showFullCalendar && (
+                    <View style={s.calCard}>
+                        {/* Month Navigator inside full calendar */}
+                        <View style={s.monthNav}>
+                            <TouchableOpacity onPress={() => goMonth(-1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>‹</Text></TouchableOpacity>
+                            <Text style={s.monthLabel}>{MONTHS[month - 1]} {year}</Text>
+                            <TouchableOpacity onPress={() => goMonth(1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>›</Text></TouchableOpacity>
+                        </View>
+                        <View style={s.calRow}>
+                            {DAYS_SHORT.map(d => <Text key={d} style={s.calDayHdr}>{d}</Text>)}
+                        </View>
+                        <View style={s.calGrid}>
+                            {calCells.map((day, idx) => {
+                                if (!day) return <View key={`e${idx}`} style={s.calCell} />;
+                                const ds = toDateStr(year, month, day);
+                                const status = getDayStatus(ds);
+                                const isToday = ds === todayStr;
+                                const isSelected = ds === selectedDate;
+                                const cellBg = isSelected ? PURPLE
+                                    : isToday ? '#EDE9FE'
+                                        : status === 'great' ? '#6EE7B7'
+                                            : status === 'good' ? '#A7F3D0'
+                                                : status === 'started' ? '#FEF3C7'
+                                                    : 'transparent';
+                                return (
+                                    <TouchableOpacity key={ds} style={[s.calCell, s.calDayCell, { backgroundColor: cellBg }]}
+                                        onPress={() => setSelectedDate(ds)}>
+                                        <Text style={[s.calDayNum,
+                                        isSelected && { color: WHITE, fontWeight: '800' },
+                                        isToday && !isSelected && { color: PURPLE, fontWeight: '700' },
+                                        ]}>{day}</Text>
+                                        <Text style={[s.calCount, isSelected && { color: WHITE }]}>
+                                            {completionByDate[ds] ? `${completionByDate[ds].completed}/${completionByDate[ds].total}` : `0/${DEFAULT_ACTIVITIES.length}`}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                        <View style={s.legend}>
+                            <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: PURPLE }]} /><Text style={s.legendTxt}>Selected</Text></View>
+                            <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#FBBF24' }]} /><Text style={s.legendTxt}>Started</Text></View>
+                            <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#10B981' }]} /><Text style={s.legendTxt}>Done</Text></View>
+                        </View>
+                    </View>
+                )}
 
                 {/* Selected Day Summary */}
                 <View style={s.daySummary}>
@@ -477,14 +560,148 @@ export default function PlanScreen({ navigation }) {
                     : TIME_SECTIONS.map(renderSection)
                 }
 
-                {/* Add Custom Activity */}
-                <TouchableOpacity style={s.addCustomBtn} onPress={openCustomModal}>
-                    <Text style={s.addCustomIcon}>＋</Text>
-                    <Text style={s.addCustomText}>Add My Own Activity</Text>
-                </TouchableOpacity>
+                {/* ── Add My Own Activity Button ── */}
+                {!loadingDay && (
+                    <TouchableOpacity style={s.addCustomBtn} onPress={() => {
+                        setCustomForm({ name: '', nameDesc: '', icon: '🌟', timeOfDay: 'Morning', useTimer: false });
+                        setActiveField(null);
+                        setShowCustomModal(true);
+                    }}>
+                        <Text style={s.addCustomIcon}>＋</Text>
+                        <View>
+                            <Text style={s.addCustomText}>{t('Add My Own Activity')}</Text>
+                            <Text style={s.addCustomSub}>{t('Create a custom plan step')}</Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
 
                 <View style={{ height: 32 }} />
             </ScrollView>
+
+            {/* ═══════════════════════════════════════════════════════════════
+              CUSTOM ACTIVITY MODAL
+            ═══════════════════════════════════════════════════════════════ */}
+            <Modal visible={showCustomModal} transparent animationType="slide"
+                onRequestClose={() => setShowCustomModal(false)}>
+                <View style={s.modalOverlay}>
+                    <View style={s.customBox}>
+                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="always">
+                            {/* Title */}
+                            <Text style={s.customTitle}>✨ {t('Add My Own Activity')}</Text>
+                            <Text style={s.customSubtitle}>{t('Create a custom plan step')}</Text>
+
+                            {/* Language Toggle */}
+                            <View style={[s.customTimerToggle, { marginBottom: 14 }]}>
+                                <Text style={s.customLabel}>{t('Input Language')}</Text>
+                                <TouchableOpacity
+                                    style={[s.langToggle, (customNameSinhalaMode || customDescSinhalaMode) && s.langToggleActive]}
+                                    onPress={() => {
+                                        const next = !(customNameSinhalaMode || customDescSinhalaMode);
+                                        setCustomNameSinhalaMode(next);
+                                        setCustomDescSinhalaMode(next);
+                                    }}>
+                                    <Text style={s.langToggleTxt}>
+                                        {(customNameSinhalaMode || customDescSinhalaMode) ? 'සිං ON' : 'EN'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Activity Name */}
+                            <Text style={s.customLabel}>🏷️ {t('Activity Name*')}</Text>
+                            <TouchableOpacity
+                                style={[s.customInput, activeField === 'name' && s.customInputFocused]}
+                                activeOpacity={1}
+                                onPress={() => setActiveField('name')}>
+                                <Text style={customForm.name ? s.inputText : s.inputPlaceholder}>
+                                    {customForm.name || t('e.g. Evening Walk, Prayer, Reading...')}
+                                </Text>
+                            </TouchableOpacity>
+                            {/* Regular TextInput when not in Sinhala mode */}
+                            {activeField === 'name' && !customNameSinhalaMode && (
+                                <TextInput
+                                    style={s.customInput}
+                                    placeholder={t('e.g. Evening Walk, Prayer, Reading...')}
+                                    value={customForm.name}
+                                    onChangeText={v => setCustomForm(p => ({ ...p, name: v }))}
+                                    autoFocus
+                                    onBlur={() => setActiveField(null)}
+                                />
+                            )}
+
+                            {/* Activity Description */}
+                            <Text style={s.customLabel}>📝 {t('Short Description (optional)')}</Text>
+                            <TouchableOpacity
+                                style={[s.customInput, { minHeight: 48 }, activeField === 'desc' && s.customInputFocused]}
+                                activeOpacity={1}
+                                onPress={() => setActiveField('desc')}>
+                                <Text style={customForm.nameDesc ? s.inputText : s.inputPlaceholder}>
+                                    {customForm.nameDesc || t('Brief note about this activity...')}
+                                </Text>
+                            </TouchableOpacity>
+                            {activeField === 'desc' && !customDescSinhalaMode && (
+                                <TextInput
+                                    style={[s.customInput, { minHeight: 48 }]}
+                                    placeholder={t('Brief note about this activity...')}
+                                    value={customForm.nameDesc}
+                                    onChangeText={v => setCustomForm(p => ({ ...p, nameDesc: v }))}
+                                    multiline
+                                    autoFocus
+                                    onBlur={() => setActiveField(null)}
+                                />
+                            )}
+
+                            {/* Sinhala Keyboard */}
+                            {(customNameSinhalaMode || customDescSinhalaMode) && activeField && (
+                                <SinhalaKeyboard
+                                    onKeyPress={handleSinhalaKey}
+                                    onClose={() => setActiveField(null)}
+                                />
+                            )}
+
+                            {/* Time of Day */}
+                            <Text style={s.customLabel}>🕐 {t('Time of Day')}</Text>
+                            <View style={s.customTimeRow}>
+                                {TIME_SECTIONS.map(sec => (
+                                    <TouchableOpacity
+                                        key={sec.key}
+                                        style={[s.customTimeChip, customForm.timeOfDay === sec.key && { backgroundColor: sec.accent, borderColor: sec.accent }]}
+                                        onPress={() => setCustomForm(p => ({ ...p, timeOfDay: sec.key }))}>
+                                        <Text style={[s.customTimeChipTxt, customForm.timeOfDay === sec.key && { color: '#fff' }]}>
+                                            {t(sec.label)}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            {/* Icon Picker */}
+                            <Text style={s.customLabel}>🎨 {t('Choose Icon')}</Text>
+                            <View style={s.iconGrid}>
+                                {ICON_OPTIONS.map(ico => (
+                                    <TouchableOpacity
+                                        key={ico}
+                                        style={[s.iconCell, customForm.icon === ico && s.iconCellActive]}
+                                        onPress={() => setCustomForm(p => ({ ...p, icon: ico }))}>
+                                        <Text style={s.iconCellTxt}>{ico}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            {/* Actions */}
+                            <View style={s.customActions}>
+                                <TouchableOpacity style={s.customCancelBtn} onPress={() => setShowCustomModal(false)}>
+                                    <Text style={s.customCancelTxt}>{t('Cancel')}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={s.customSaveBtn} onPress={saveCustomActivity} disabled={savingCustom}>
+                                    {savingCustom
+                                        ? <ActivityIndicator color="#fff" size="small" />
+                                        : <Text style={s.customSaveTxt}>✓ {t('Add to Plan')}</Text>
+                                    }
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
 
             {/* ═══════════════════════════════════════════════════════════════════
           TIMER MODAL
@@ -543,114 +760,9 @@ export default function PlanScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* ═══════════════════════════════════════════════════════════════════
-          CUSTOM ACTIVITY MODAL
-      ═══════════════════════════════════════════════════════════════════ */}
-            <Modal visible={customModal.visible} transparent animationType="slide"
-                onRequestClose={() => setCustomModal({ visible: false })}>
-                <View style={s.timerOverlay}>
-                    <View style={s.customBox}>
-                        {/* ── Fixed header (never scrolls away) ── */}
-                        <Text style={s.customTitle}>＋ Add Custom Activity</Text>
-                        <Text style={s.customSubtitle}>Create a personalized wellness activity</Text>
-
-                        {/* ── Scrollable body so keyboard is always reachable ── */}
-                        <ScrollView
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="always"
-                            contentContainerStyle={{ paddingBottom: 8 }}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                                <Text style={[s.customLabel, { marginBottom: 0 }]}>{t('Activity Name*')}</Text>
-                                <TouchableOpacity
-                                    onPress={() => { setSinhalaMode(!sinhalaMode); setShowVisualKeyboard(!sinhalaMode); }}
-                                    style={{ backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}
-                                >
-                                    <Text style={{ fontSize: 12, color: '#7C3AED', fontWeight: 'bold' }}>
-                                        {sinhalaMode ? '🔠 Abc Mode' : '🇱🇰 සිං Mode'}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                            <TextInput
-                                style={s.customInput}
-                                placeholder="e.g. Evening Journaling"
-                                placeholderTextColor="#9CA3AF"
-                                value={customName}
-                                onChangeText={(txt) => setCustomName(sinhalaMode ? transliterate(txt) : txt)}
-                                editable={!showVisualKeyboard}
-                            />
-
-                            {/* Sinhala Visual Keyboard — shown BEFORE action buttons */}
-                            {showVisualKeyboard && (
-                                <SinhalaKeyboard
-                                    onKeyPress={(char) => {
-                                        if (char === 'BACKSPACE') setCustomName(prev => prev.slice(0, -1));
-                                        else if (char === 'SPACE') setCustomName(prev => prev + ' ');
-                                        else setCustomName(prev => prev + char);
-                                    }}
-                                    onClose={() => setShowVisualKeyboard(false)}
-                                />
-                            )}
-
-                            <Text style={[s.customLabel, { marginTop: 10 }]}>Time of Day</Text>
-                            <View style={s.customTimeRow}>
-                                {['Morning', 'Midday', 'Afternoon', 'Night'].map(tod => (
-                                    <TouchableOpacity key={tod}
-                                        style={[s.customTimeChip, customTimeOfDay === tod && s.customTimeChipActive]}
-                                        onPress={() => setCustomTimeOfDay(tod)}>
-                                        <Text style={[s.customTimeChipTxt, customTimeOfDay === tod && { color: WHITE }]}>{tod}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            <Text style={s.customLabel}>Choose Icon</Text>
-                            <View style={s.iconGrid}>
-                                {ICON_OPTIONS.map(ic => (
-                                    <TouchableOpacity key={ic} style={[s.iconCell, customIcon === ic && s.iconCellActive]}
-                                        onPress={() => setCustomIcon(ic)}>
-                                        <Text style={s.iconCellTxt}>{ic}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            <Text style={s.customLabel}>Suggested Duration (min, optional)</Text>
-                            <TextInput
-                                style={s.customInput}
-                                placeholder="e.g. 15"
-                                placeholderTextColor="#9CA3AF"
-                                value={customDuration}
-                                onChangeText={setCustomDuration}
-                                keyboardType="numeric"
-                            />
-
-                            <View style={s.customTimerToggle}>
-                                <Text style={s.customLabel}>Enable Stopwatch?</Text>
-                                <TouchableOpacity
-                                    style={[s.toggleBtn, customUseTimer && s.toggleBtnActive]}
-                                    onPress={() => setCustomUseTimer(!customUseTimer)}
-                                >
-                                    <View style={[s.toggleDot, customUseTimer && s.toggleDotActive]} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={s.customActions}>
-                                <TouchableOpacity style={s.customCancelBtn} onPress={() => setCustomModal({ visible: false })}>
-                                    <Text style={s.customCancelTxt}>Cancel</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={s.customSaveBtn} onPress={saveCustomActivity} disabled={savingCustom}>
-                                    {savingCustom
-                                        ? <ActivityIndicator color={WHITE} size="small" />
-                                        : <Text style={s.customSaveTxt}>Add Activity</Text>
-                                    }
-                                </TouchableOpacity>
-                            </View>
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
-
             <Toast />
         </SafeAreaView>
+        </LinearGradient>
     );
 }
 
@@ -762,13 +874,17 @@ const s = StyleSheet.create({
 
     // Add Custom Button
     addCustomBtn: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start',
         backgroundColor: WHITE, borderRadius: 16, padding: 16, marginBottom: 4, borderWidth: 2,
-        borderColor: PURPLE, borderStyle: 'dashed', gap: 8,
+        borderColor: PURPLE, borderStyle: 'dashed', gap: 12,
         elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2
     },
-    addCustomIcon: { fontSize: 22, color: PURPLE, fontWeight: '700' },
+    addCustomIcon: { fontSize: 28, color: PURPLE, fontWeight: '700' },
     addCustomText: { fontSize: 14, fontWeight: '700', color: PURPLE },
+    addCustomSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+
+    // Modal Overlay
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
 
     // Timer Modal
     timerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
@@ -809,7 +925,10 @@ const s = StyleSheet.create({
     timerCloseTxt: { fontSize: 12, color: '#9CA3AF', textDecorationLine: 'underline' },
 
     // Custom Activity Modal
-    customBox: { backgroundColor: WHITE, borderRadius: 24, padding: 24, width: '92%', maxWidth: 420, maxHeight: '92%', alignSelf: 'center' },
+    customBox: {
+        backgroundColor: WHITE, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+        padding: 24, maxHeight: '92%',
+    },
     customTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 4 },
     customSubtitle: { fontSize: 13, color: '#6B7280', marginBottom: 20 },
     customLabel: { fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 6 },
@@ -844,4 +963,34 @@ const s = StyleSheet.create({
     customCancelTxt: { color: '#6B7280', fontWeight: '700', fontSize: 14 },
     customSaveBtn: { flex: 2, paddingVertical: 13, borderRadius: 12, alignItems: 'center', backgroundColor: PURPLE },
     customSaveTxt: { color: WHITE, fontWeight: '700', fontSize: 14 },
+
+    // Lang toggle
+    langToggle: {
+        paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+        backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB',
+    },
+    langToggleActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    langToggleTxt: { fontSize: 13, fontWeight: '700', color: '#374151' },
+
+    // Input display states
+    customInputFocused: { borderColor: PURPLE, backgroundColor: '#FAF5FF' },
+    inputText: { fontSize: 14, color: '#111827' },
+    inputPlaceholder: { fontSize: 14, color: '#C4C4C4' },
+
+    relaxHeader: { marginTop: 20, marginBottom: 20, paddingHorizontal: 4 },
+    relaxTitle: { fontSize: 24, fontWeight: '800', color: '#1E1B4B' },
+    relaxSub: { fontSize: 14, color: '#6366F1', marginTop: 4, fontWeight: '500' },
+
+    weeklyStrip: { backgroundColor: WHITE, borderRadius: 24, padding: 16, marginBottom: 16, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
+    weeklyStripHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+    weeklyStripMonth: { fontSize: 16, fontWeight: '800', color: '#1E293B' },
+    fullCalToggle: { fontSize: 12, color: PURPLE, fontWeight: '700' },
+    weekScroll: { gap: 10 },
+    weekDay: { width: 45, height: 65, borderRadius: 22, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
+    weekDaySelected: { backgroundColor: PURPLE, elevation: 4, shadowColor: PURPLE, shadowOpacity: 0.3, shadowRadius: 8 },
+    weekDayName: { fontSize: 11, fontWeight: '700', color: '#94A3B8' },
+    weekDayNum: { fontSize: 16, fontWeight: '800', color: '#1E293B', marginTop: 4 },
+    weekDot: { width: 4, height: 4, borderRadius: 2, marginTop: 4 },
+    weekCount: { fontSize: 8, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
+    calCount: { fontSize: 7, fontWeight: '700', color: '#6B7280', marginTop: 1, textAlign: 'center' },
 });

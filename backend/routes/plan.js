@@ -15,4 +15,10 @@ router.post('/detail', verifyToken, saveDetail);                // POST /plan/de
 router.put('/detail/:detailId', verifyToken, updateDetail);     // PUT  /plan/detail/:id
 router.put('/:planId/status', verifyToken, updatePlanStatus);   // PUT  /plan/:planId/status
 
+// Activity Sub-endpoints (embedded in PlanDetail)
+const { upsertActivity, getMonthActivities, getDateActivities } = require('../controllers/plan');
+router.post('/activity', verifyToken, upsertActivity);
+router.get('/activity/month/:year/:month', verifyToken, getMonthActivities);
+router.get('/activity/date/:date', verifyToken, getDateActivities);
+
 module.exports = router;

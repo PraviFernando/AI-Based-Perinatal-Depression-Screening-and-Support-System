@@ -1,0 +1,229 @@
+{"audio_file": "sample1.wav", "sentence": "මට අද ගොඩක් සතුටුයි.", "context": "general"}
+{"audio_file": "sample2.wav", "sentence": "බබා ලැබුණට පස්සේ මට ලොකු තනිකමක් දැනෙනවා.", "context": "postpartum"}
+{"audio_file": "sample3.wav", "sentence": "මට රෑට නින්ද යන්නේ නැහැ.", "context": "symptom"}
+{"audio_file": "sample4.wav", "sentence": "ක්ලිනික් එකට කවද්ද යන්න ඕනේ?", "context": "medical"}
+{"audio_file": "sample5.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවීමට අවශ්‍යයි.", "context": "midwife"}
+{"audio_file": "sample6.wav", "sentence": "බඩේ කැක්කුමක් එනවා වගේ දැනෙනවා.", "context": "symptom"}
+{"audio_file": "sample7.wav", "sentence": "විටමින් පෙති ටික බිව්වා.", "context": "medical"}
+{"audio_file": "sample8.wav", "sentence": "අද මම ගොඩක් මහන්සියෙන් ඉන්නේ.", "context": "general"}
+{"audio_file": "sample9.wav", "sentence": "මගේ හිතට ලොකු බයක් දැනෙනවා.", "context": "anxiety"}
+{"audio_file": "sample10.wav", "sentence": "මම හිතන්නේ මට උදව් කරන්න කෙනෙක් ඕනේ.", "context": "support"}
+{"audio_file": "sample11.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample12.wav", "sentence": "කවුරුවත් මාව තේරුම් ගන්නේ නැහැ", "context": "support"}
+{"audio_file": "sample13.wav", "sentence": "හැමදාම මහන්සියෙන් ඉන්නේ", "context": "symptom"}
+{"audio_file": "sample14.wav", "sentence": "බබා එක්ක සම්බන්ධ වෙන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample15.wav", "sentence": "රෝහලට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample16.wav", "sentence": "මට සතුටක් දැනෙනවා", "context": "positive"}
+{"audio_file": "sample17.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample18.wav", "sentence": "හැමදාම මහන්සියෙන් ඉන්නේ", "context": "symptom"}
+{"audio_file": "sample19.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample20.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවෙන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample21.wav", "sentence": "කාලය ගතවෙන එක දැනෙන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample22.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample23.wav", "sentence": "මට සතුටක් දැනෙනවා", "context": "positive"}
+{"audio_file": "sample24.wav", "sentence": "ආහාර ගන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample25.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample26.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample27.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample28.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample29.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample30.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample31.wav", "sentence": "හිත එකඟ කරගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample32.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample33.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample34.wav", "sentence": "හිත එකඟ කරගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample35.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample36.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample37.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample38.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample39.wav", "sentence": "කවුරුවත් මාව තේරුම් ගන්නේ නැහැ", "context": "support"}
+{"audio_file": "sample40.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample41.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample42.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවෙන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample43.wav", "sentence": "බබාගේ සෞඛ්‍ය පරීක්ෂා කරන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample44.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample45.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample46.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample47.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample48.wav", "sentence": "මට සතුටක් නැතිවෙලා වගේ දැනෙනවා", "context": "emotion"}
+{"audio_file": "sample49.wav", "sentence": "මට සතුටක් නැතිවෙලා වගේ දැනෙනවා", "context": "emotion"}
+{"audio_file": "sample50.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample51.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවෙන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample52.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample53.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample54.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample55.wav", "sentence": "මට සතුටක් දැනෙන්නේ නැහැ", "context": "emotion"}
+{"audio_file": "sample56.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample57.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample58.wav", "sentence": "ශරීරය දුර්වලයි", "context": "symptom"}
+{"audio_file": "sample59.wav", "sentence": "රෑට නින්ද යන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample60.wav", "sentence": "මට සන්සුන්ව ඉන්න අමාරුයි", "context": "emotion"}
+{"audio_file": "sample61.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample62.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample63.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample64.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample65.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample66.wav", "sentence": "මට බය සහ චින්තාව තියෙනවා", "context": "emotion"}
+{"audio_file": "sample67.wav", "sentence": "බබා එක්ක සම්බන්ධ වෙන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample68.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample69.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample70.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample71.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample72.wav", "sentence": "කාලය ගතවෙන එක දැනෙන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample73.wav", "sentence": "කාලය ගතවෙන එක දැනෙන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample74.wav", "sentence": "වෛද්‍ය උපදෙස් ගන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample75.wav", "sentence": "කවුරුවත් මාව තේරුම් ගන්නේ නැහැ", "context": "support"}
+{"audio_file": "sample76.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample77.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample78.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample79.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample80.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample81.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample82.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample83.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample84.wav", "sentence": "මට තනිවෙලා වගේ දැනෙනවා", "context": "support"}
+{"audio_file": "sample85.wav", "sentence": "මට සතුටක් නැතිවෙලා වගේ දැනෙනවා", "context": "emotion"}
+{"audio_file": "sample86.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample87.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample88.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample89.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample90.wav", "sentence": "මට සතුටක් දැනෙනවා", "context": "positive"}
+{"audio_file": "sample91.wav", "sentence": "ශරීරය දුර්වලයි", "context": "symptom"}
+{"audio_file": "sample92.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample93.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample94.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample95.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample96.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample97.wav", "sentence": "ශරීරය දුර්වලයි", "context": "symptom"}
+{"audio_file": "sample98.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample99.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample100.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවෙන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample101.wav", "sentence": "රෝහලට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample102.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample103.wav", "sentence": "මගේ හිත බරයි", "context": "emotion"}
+{"audio_file": "sample104.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample105.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample106.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample107.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample108.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample109.wav", "sentence": "මගේ හිත බරයි", "context": "emotion"}
+{"audio_file": "sample110.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample111.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample112.wav", "sentence": "මට මටම විශ්වාස නැහැ", "context": "emotion"}
+{"audio_file": "sample113.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample114.wav", "sentence": "මට මටම විශ්වාස නැහැ", "context": "emotion"}
+{"audio_file": "sample115.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample116.wav", "sentence": "මට සතුටක් දැනෙනවා", "context": "positive"}
+{"audio_file": "sample117.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample118.wav", "sentence": "බබා එක්ක හොඳට ඉන්නවා", "context": "positive"}
+{"audio_file": "sample119.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample120.wav", "sentence": "රෑට නින්ද යන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample121.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample122.wav", "sentence": "මට ශක්තියක් නැහැ", "context": "emotion"}
+{"audio_file": "sample123.wav", "sentence": "වෛද්‍ය උපදෙස් ගන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample124.wav", "sentence": "මට සතුටක් දැනෙන්නේ නැහැ", "context": "emotion"}
+{"audio_file": "sample125.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample126.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample127.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample128.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample129.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample130.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample131.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample132.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample133.wav", "sentence": "මට සතුටක් දැනෙන්නේ නැහැ", "context": "emotion"}
+{"audio_file": "sample134.wav", "sentence": "මට තනිවෙලා වගේ දැනෙනවා", "context": "support"}
+{"audio_file": "sample135.wav", "sentence": "මට බය සහ චින්තාව තියෙනවා", "context": "emotion"}
+{"audio_file": "sample136.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample137.wav", "sentence": "මට ඉන්න තැන හොයාගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample138.wav", "sentence": "කවුරුවත් එක්ක කතා කරන්න ඕනේ නැහැ", "context": "symptom"}
+{"audio_file": "sample139.wav", "sentence": "කාලය ගතවෙන එක දැනෙන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample140.wav", "sentence": "හිත එකඟ කරගන්න බැහැ", "context": "symptom"}
+{"audio_file": "sample141.wav", "sentence": "කවුරුවත් මාව තේරුම් ගන්නේ නැහැ", "context": "support"}
+{"audio_file": "sample142.wav", "sentence": "මට බය සහ චින්තාව තියෙනවා", "context": "emotion"}
+{"audio_file": "sample143.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample144.wav", "sentence": "මට තනිකමක් දැනෙනවා", "context": "emotion"}
+{"audio_file": "sample145.wav", "sentence": "බබා එක්ක හොඳට ඉන්නවා", "context": "positive"}
+{"audio_file": "sample146.wav", "sentence": "බබා එක්ක සම්බන්ධ වෙන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample147.wav", "sentence": "මට බය සහ චින්තාව තියෙනවා", "context": "emotion"}
+{"audio_file": "sample148.wav", "sentence": "හැමදාම මහන්සියෙන් ඉන්නේ", "context": "symptom"}
+{"audio_file": "sample149.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample150.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample151.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample152.wav", "sentence": "මට උදව් අවශ්‍යයි", "context": "support"}
+{"audio_file": "sample153.wav", "sentence": "පවුල් සෞඛ්‍ය සේවිකාව හමුවෙන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample154.wav", "sentence": "මට සන්සුන්ව ඉන්න අමාරුයි", "context": "emotion"}
+{"audio_file": "sample155.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample156.wav", "sentence": "රෝහලට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample157.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample158.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample159.wav", "sentence": "ආහාර ගන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample160.wav", "sentence": "මට තනිවෙලා වගේ දැනෙනවා", "context": "support"}
+{"audio_file": "sample161.wav", "sentence": "වෛද්‍ය උපදෙස් ගන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample162.wav", "sentence": "මට තනිවෙලා වගේ දැනෙනවා", "context": "support"}
+{"audio_file": "sample163.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample164.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample165.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample166.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample167.wav", "sentence": "ආහාර ගන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample168.wav", "sentence": "මට බය සහ චින්තාව තියෙනවා", "context": "emotion"}
+{"audio_file": "sample169.wav", "sentence": "බබා එක්ක සම්බන්ධ වෙන්න අමාරුයි", "context": "symptom"}
+{"audio_file": "sample170.wav", "sentence": "මට මටම විශ්වාස නැහැ", "context": "emotion"}
+{"audio_file": "sample171.wav", "sentence": "බබා එක්ක හොඳට ඉන්නවා", "context": "positive"}
+{"audio_file": "sample172.wav", "sentence": "ශරීරය දුර්වලයි", "context": "symptom"}
+{"audio_file": "sample173.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample174.wav", "sentence": "පවුලේ සහයෝගය ඕනේ", "context": "support"}
+{"audio_file": "sample175.wav", "sentence": "මට සන්සුන්ව ඉන්න අමාරුයි", "context": "emotion"}
+{"audio_file": "sample176.wav", "sentence": "මට කෙනෙක් එක්ක කතා කරන්න ඕනේ", "context": "support"}
+{"audio_file": "sample177.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample178.wav", "sentence": "මට සතුටක් දැනෙනවා", "context": "positive"}
+{"audio_file": "sample179.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample180.wav", "sentence": "මට සතුටක් දැනෙන්නේ නැහැ", "context": "emotion"}
+{"audio_file": "sample181.wav", "sentence": "වෛද්‍ය උපදෙස් ගන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample182.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample183.wav", "sentence": "මගේ මනස අවුල් වෙලා වගේ", "context": "emotion"}
+{"audio_file": "sample184.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample185.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample186.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample187.wav", "sentence": "මම ටිකක් සන්සුන් වෙලා ඉන්නවා", "context": "positive"}
+{"audio_file": "sample188.wav", "sentence": "ශරීරය දුර්වලයි", "context": "symptom"}
+{"audio_file": "sample189.wav", "sentence": "අද මට ටිකක් හොඳයි", "context": "positive"}
+{"audio_file": "sample190.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample191.wav", "sentence": "රෑට නින්ද යන්නේ නැහැ", "context": "symptom"}
+{"audio_file": "sample192.wav", "sentence": "බබා එක්ක හොඳට ඉන්නවා", "context": "positive"}
+{"audio_file": "sample193.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}
+{"audio_file": "sample194.wav", "sentence": "රෝහලට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample195.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample196.wav", "sentence": "මට සතුටක් නැතිවෙලා වගේ දැනෙනවා", "context": "emotion"}
+{"audio_file": "sample197.wav", "sentence": "මට ශක්තියක් නැහැ", "context": "emotion"}
+{"audio_file": "sample198.wav", "sentence": "මට සතුටක් දැනෙන්නේ නැහැ", "context": "emotion"}
+{"audio_file": "sample199.wav", "sentence": "බබාගේ සෞඛ්‍ය පරීක්ෂා කරන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample200.wav", "sentence": "මට ශක්තියක් නැහැ", "context": "emotion"}
+{"audio_file": "sample201.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample202.wav", "sentence": "අද දවස හොඳයි", "context": "positive"}
+{"audio_file": "sample203.wav", "sentence": "මට මටම විශ්වාස නැහැ", "context": "emotion"}
+{"audio_file": "sample204.wav", "sentence": "මගේ හිත බරයි", "context": "emotion"}
+{"audio_file": "sample205.wav", "sentence": "මට හැම වෙලාවෙම අඬන්න ඕනේ වගේ", "context": "emotion"}
+{"audio_file": "sample206.wav", "sentence": "බබාගේ සෞඛ්‍ය පරීක්ෂා කරන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample207.wav", "sentence": "ක්ලිනික් එකට යන්න ඕනේ", "context": "medical"}
+{"audio_file": "sample208.wav", "sentence": "විටමින් බොනවා", "context": "medical"}
+{"audio_file": "sample209.wav", "sentence": "නිතරම අඬනවා", "context": "symptom"}
+{"audio_file": "sample210.wav", "sentence": "උදව් කරන කෙනෙක් ඕනේ", "context": "support"}{"audio_file": "word_1.wav", "sentence": "සතුටුයි", "context": "positive"}
+{"audio_file": "word_2.wav", "sentence": "දුකයි", "context": "emotion"}
+{"audio_file": "word_3.wav", "sentence": "අඬනවා", "context": "emotion"}
+{"audio_file": "word_4.wav", "sentence": "බයයි", "context": "anxiety"}
+{"audio_file": "word_5.wav", "sentence": "මහන්සියි", "context": "symptom"}
+{"audio_file": "word_6.wav", "sentence": "තනිකමක්", "context": "emotion"}
+{"audio_file": "word_7.wav", "sentence": "ක්ලිනික්", "context": "medical"}
+{"audio_file": "word_8.wav", "sentence": "විටමින්", "context": "medical"}
+{"audio_file": "word_9.wav", "sentence": "උදව්", "context": "support"}
+{"audio_file": "word_10.wav", "sentence": "සහයෝගය", "context": "support"}
+{"audio_file": "word_11.wav", "sentence": "රෝහල", "context": "medical"}
+{"audio_file": "word_12.wav", "sentence": "නින්ද", "context": "symptom"}
+{"audio_file": "word_13.wav", "sentence": "කැක්කුම", "context": "symptom"}
+{"audio_file": "word_14.wav", "sentence": "ආහාර", "context": "symptom"}
+{"audio_file": "word_15.wav", "sentence": "දුර්වලයි", "context": "symptom"}
+{"audio_file": "word_16.wav", "sentence": "අමාරුයි", "context": "symptom"}
+{"audio_file": "word_17.wav", "sentence": "අවුල්", "context": "emotion"}
+{"audio_file": "word_18.wav", "sentence": "සන්සුන්", "context": "positive"}
+{"audio_file": "word_19.wav", "sentence": "විශ්වාස", "context": "emotion"}
+{"audio_file": "word_20.wav", "sentence": "හොඳයි", "context": "positive"}

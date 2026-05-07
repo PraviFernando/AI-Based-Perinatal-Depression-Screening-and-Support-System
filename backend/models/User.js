@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  fullName: { type: String, trim: true },
+  age: { type: Number },
+  district: { type: String, trim: true },
+  village: { type: String, trim: true },
   role: {
     type: String,
     enum: ['admin', 'midwife', 'manager', 'doctor', 'patient'],
