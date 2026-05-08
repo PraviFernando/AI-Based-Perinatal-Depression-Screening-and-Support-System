@@ -50,14 +50,14 @@ mongoose.connect(MONGODB_URL)
 const userRouter = require('./routes/user');
 const diaryRouter = require('./routes/diary');
 const planRouter = require('./routes/plan');
-const activityRouter = require('./routes/activity');
+//const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 const midwifeRouter = require('./routes/midwife');
 
 app.use('/user', userRouter);
 app.use('/diary', diaryRouter);
 app.use('/plan', planRouter);
-app.use('/activity', activityRouter);
+//app.use('/activity', activityRouter);
 app.use('/admin', adminRouter);
 app.use('/midwife', midwifeRouter);
 
