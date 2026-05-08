@@ -560,20 +560,7 @@ export default function PlanScreen({ navigation }) {
                     : TIME_SECTIONS.map(renderSection)
                 }
 
-                {/* ── Add My Own Activity Button ── */}
-                {!loadingDay && (
-                    <TouchableOpacity style={s.addCustomBtn} onPress={() => {
-                        setCustomForm({ name: '', nameDesc: '', icon: '🌟', timeOfDay: 'Morning', useTimer: false });
-                        setActiveField(null);
-                        setShowCustomModal(true);
-                    }}>
-                        <Text style={s.addCustomIcon}>＋</Text>
-                        <View>
-                            <Text style={s.addCustomText}>{t('Add My Own Activity')}</Text>
-                            <Text style={s.addCustomSub}>{t('Create a custom plan step')}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
+
 
                 <View style={{ height: 32 }} />
             </ScrollView>
