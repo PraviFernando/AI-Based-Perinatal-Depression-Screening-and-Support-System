@@ -240,30 +240,7 @@ export default function DiaryScreen({ navigation }) {
         }
     };
 
-    const handleContentChange = (text) => {
-        let newText = text;
-        if (sinhalaMode && text.length > content.length) {
-            const lastChar = text[text.length - 1];
-            if ([' ', '\n', '.', ',', '?', '!', '\t'].includes(lastChar)) {
-                const words = text.split(/(\s+)/);
-                const lastWordIndex = words.length - 2;
-                const lastWord = words[lastWordIndex];
-                if (lastWord && /^[a-zA-Z]+$/.test(lastWord)) {
-                    const siWord = transliterate(lastWord);
-                    if (siWord !== lastWord) {
-                        words[lastWordIndex] = siWord;
-                        newText = words.join('');
-                    }
-                }
-            }
-        }
-        setContent(newText);
-        const newSentiment = analyzeSentiment(newText);
-        setSentiment(newSentiment);
-        setSaveStatus('saving');
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => saveDiary(newText, isLocked, currentTheme, media, mood, newSentiment), 1500);
-    };
+
 
     const saveDiary = async (text, locked = isLocked, theme = currentTheme, mediaList = media, m = mood, s = sentiment) => {
         try {
@@ -288,7 +265,37 @@ export default function DiaryScreen({ navigation }) {
         saveDiary(content, isLocked, newTheme, media, mood, sentiment);
     };
 
+    // Determine if the selected date is today
+    const isToday = selectedDate === today;
+
+    const handleContentChange = (text) => {
+        if (!isToday) return; // Prevent editing past or future entries
+        let newText = text;
+        if (sinhalaMode && text.length > content.length) {
+            const lastChar = text[text.length - 1];
+            if ([' ', '\n', '.', ',', '?', '!', '\t'].includes(lastChar)) {
+                const words = text.split(/(\s+)/);
+                const lastWordIndex = words.length - 2;
+                const lastWord = words[lastWordIndex];
+                if (lastWord && /^[a-zA-Z]+$/.test(lastWord)) {
+                    const siWord = transliterate(lastWord);
+                    if (siWord !== lastWord) {
+                        words[lastWordIndex] = siWord;
+                        newText = words.join('');
+                    }
+                }
+            }
+        }
+        setContent(newText);
+        const newSentiment = analyzeSentiment(newText);
+        setSentiment(newSentiment);
+        setSaveStatus('saving');
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => saveDiary(newText, isLocked, currentTheme, media, mood, newSentiment), 1500);
+    };
+
     const addMedia = async (type) => {
+        if (!isToday) return; // Prevent adding media to past/future entries
         try {
             if (type === 'location') {
                 const newMedia = [...media, { type, url: 'geo:0,0', name: `Location` }];
