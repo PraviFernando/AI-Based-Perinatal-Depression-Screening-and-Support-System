@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { useTranslation } from 'react-i18next';
+import Chatbot from '../components/Chatbot/Chatbot';
 
 const { width } = Dimensions.get('window');
 
@@ -424,8 +425,12 @@ export default function DashboardScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
+
+
                 <View style={{ height: 20 }} />
+
             </ScrollView>
+            <Chatbot />
 
             {/* ── Footer ── */}
             <Footer activeTab={activeTab} onTabPress={handleTabPress} />

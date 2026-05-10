@@ -53,6 +53,7 @@ const planRouter = require('./routes/plan');
 //const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 const midwifeRouter = require('./routes/midwife');
+const chatRouter = require('./routes/chat');
 
 app.use('/user', userRouter);
 app.use('/diary', diaryRouter);
@@ -60,6 +61,7 @@ app.use('/plan', planRouter);
 //app.use('/activity', activityRouter);
 app.use('/admin', adminRouter);
 app.use('/midwife', midwifeRouter);
+app.use('/api/chat', chatRouter);
 
 // Example protected route
 app.get('/protected', (req, res) => {
