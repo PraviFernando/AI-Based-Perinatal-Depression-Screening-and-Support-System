@@ -22,11 +22,30 @@ const todayStr = () => {
 };
 
 // Health Data Input Component
-const HealthDataForm = ({ onSubmit, loading, initialData }) => {
+const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
     const { t } = useTranslation();
     
+    const [deliveryDate, setDeliveryDate] = useState(user?.deliveryDate || '');
     const [weeks, setWeeks] = useState(initialData?.weeksAfterDelivery || '');
     const [deliveryType, setDeliveryType] = useState(initialData?.deliveryType || 'normal');
+    
+    // Auto-calculate weeks whenever deliveryDate changes
+    useEffect(() => {
+        if (deliveryDate && deliveryDate.length === 10) { // YYYY-MM-DD
+            try {
+                const birthDate = new Date(deliveryDate);
+                const today = new Date();
+                if (!isNaN(birthDate.getTime())) {
+                    const diffTime = Math.abs(today - birthDate);
+                    const calculatedWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+                    setWeeks(String(calculatedWeeks));
+                }
+            } catch (e) {
+                console.log("Date calculation error", e);
+            }
+        }
+    }, [deliveryDate]);
+
     const [pelvicPain, setPelvicPain] = useState(initialData?.pelvicPain || false);
     const [backPain, setBackPain] = useState(initialData?.backPain || false);
     const [abdominalPain, setAbdominalPain] = useState(initialData?.abdominalPain || false);
@@ -44,6 +63,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
         }
         onSubmit({
             date: todayStr(),
+            deliveryDate,
             weeksAfterDelivery: parseInt(weeks),
             deliveryType,
             pelvicPain,
@@ -64,16 +84,32 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                 {t("Today's Health Status")}
             </Text>
             
+            {(!user?.deliveryDate) && (
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                        {t('Delivery Date')} (YYYY-MM-DD)
+                    </Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="2024-05-10"
+                        value={deliveryDate}
+                        onChangeText={setDeliveryDate}
+                        placeholderTextColor="#9CA3AF"
+                    />
+                </View>
+            )}
+            
             <View style={styles.inputGroup}>
                 <Text style={styles.label}>
                     {t('Weeks after delivery')}
                 </Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, deliveryDate ? { backgroundColor: '#F3F4F6', color: '#6B7280' } : {}]}
                     placeholder={t("e.g., 4")}
                     keyboardType="numeric"
                     value={String(weeks)}
                     onChangeText={setWeeks}
+                    editable={!deliveryDate}
                     placeholderTextColor="#9CA3AF"
                 />
             </View>
@@ -619,6 +655,7 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
 // Main Exercise Screen
 export default function ExerciseScreen({ navigation }) {
     const { t, i18n } = useTranslation();
+    const { user } = useAuth();
     const isSinhala = i18n.language === 'si';
     const [hasData, setHasData] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
@@ -782,6 +819,7 @@ export default function ExerciseScreen({ navigation }) {
                         <HealthDataForm
                             onSubmit={handleSubmitHealthData}
                             loading={loading}
+                            user={user}
                         />
                     )}
                     

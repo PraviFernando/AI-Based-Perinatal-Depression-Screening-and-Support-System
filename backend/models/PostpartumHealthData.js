@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const postpartumHealthDataSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     date: { type: String, required: true }, // YYYY-MM-DD
+    deliveryDate: { type: String }, // YYYY-MM-DD
     
     // Recovery Stage
     weeksAfterDelivery: { type: Number, required: true },

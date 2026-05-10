@@ -1,6 +1,8 @@
 const Exercise = require('../models/Exercise');
+const User = require('../models/User');
 const ExerciseRecord = require('../models/ExerciseRecord');
 const PostpartumHealthData = require('../models/PostpartumHealthData');
+const Diary = require('../models/Diary');
 const MLPredictionService = require('../services/mlPredictionService');
 
 // Clinical Safety Rules
@@ -79,6 +81,97 @@ const applySafetyRules = (healthData) => {
     }
     
     return { safetyStatus, safetyMessage, safetyMessageSi, warnings };
+};
+
+// ── Diary Integration Functions ──
+
+/**
+ * Bilingual Mood Detection Function
+ * Detects mood from text content (English/Sinhala) and emojis
+ */
+const analyzeDiaryMood = (text, emoji) => {
+    let mood = 'neutral';
+    const content = (text || '').toLowerCase();
+
+    // Emoji detection
+    const happyEmojis = ['😊', '😄', '🥰', '🌟', '🌈', '🤩'];
+    const sadEmojis = ['😔', '😢', '😭', '💔', '🥀', '😟'];
+    const tiredEmojis = ['😪', '😴', '🥱', '🔋', '😫', '💤'];
+    const stressedEmojis = ['😰', '😰', '🤯', '⚡', '🌋', '🆘'];
+    const angryEmojis = ['😠', '😡', '🤬', '🔥', '💢', '😤'];
+
+    if (happyEmojis.includes(emoji)) mood = 'happy';
+    else if (sadEmojis.includes(emoji)) mood = 'sad';
+    else if (tiredEmojis.includes(emoji)) mood = 'tired';
+    else if (stressedEmojis.includes(emoji)) mood = 'stressed';
+    else if (angryEmojis.includes(emoji)) mood = 'angry';
+
+    // English Keywords detection
+    if (content.includes('happy') || content.includes('great') || content.includes('good') || content.includes('joy')) mood = 'happy';
+    if (content.includes('sad') || content.includes('cry') || content.includes('unhappy') || content.includes('depressed')) mood = 'sad';
+    if (content.includes('tired') || content.includes('exhausted') || content.includes('sleepy') || content.includes('fatigue')) mood = 'tired';
+    if (content.includes('stressed') || content.includes('anxious') || content.includes('pressure') || content.includes('tension')) mood = 'stressed';
+    if (content.includes('angry') || content.includes('mad') || content.includes('furious') || content.includes('hate')) mood = 'angry';
+
+    // Sinhala Keywords detection
+    if (content.includes('සතුට') || content.includes('හොඳයි') || content.includes('ප්‍රීති')) mood = 'happy';
+    if (content.includes('දුක') || content.includes('අඬන') || content.includes('කණගාටු')) mood = 'sad';
+    if (content.includes('තෙහෙට්ටුව') || content.includes('මහන්සි') || content.includes('නිදිමත')) mood = 'tired';
+    if (content.includes('ආතතිය') || content.includes('බිය') || content.includes('කලබල')) mood = 'stressed';
+    if (content.includes('තරහ') || content.includes('කේන්ති') || content.includes('වෛර')) mood = 'angry';
+
+    return mood;
+};
+
+/**
+ * Diary Rule Engine
+ * Modifies recommendations based on detected mood
+ */
+const applyDiaryRules = (recommendations, mood) => {
+    if (mood === 'happy' || mood === 'neutral') return recommendations;
+
+    console.log(`[Diary Module] Applying rules for mood: ${mood}`);
+    let modifiedRecs = [...recommendations];
+
+    if (mood === 'sad' || mood === 'stressed') {
+        // Replace high-energy exercises with calming ones
+        modifiedRecs = modifiedRecs.map(rec => {
+            if (rec.type === 'walking' || rec.type === 'cardio' || rec.type === 'strength') {
+                return {
+                    ...rec,
+                    type: 'breathing',
+                    customName: 'Calming Breathing for Mood Relief',
+                    customNameSi: 'මනෝභාවය සැහැල්ලු කිරීම සඳහා සන්සුන් හුස්ම ගැනීම',
+                    duration: 10
+                };
+            }
+            return rec;
+        });
+    } else if (mood === 'tired') {
+        // Reduce durations and remove high-effort movement
+        modifiedRecs = modifiedRecs
+            .filter(rec => rec.type !== 'walking')
+            .map(rec => ({
+                ...rec,
+                duration: Math.max(5, Math.floor((rec.duration || 10) * 0.5))
+            }));
+    } else if (mood === 'angry') {
+        // Switch to meditative/breathing focus
+        modifiedRecs = modifiedRecs.map(rec => {
+            if (rec.type !== 'breathing' && rec.type !== 'stretching') {
+                return {
+                    ...rec,
+                    type: 'breathing',
+                    customName: 'Mindful Breathing',
+                    customNameSi: 'මනස සන්සුන් කරන හුස්ම ගැනීම',
+                    duration: 5
+                };
+            }
+            return rec;
+        });
+    }
+
+    return modifiedRecs;
 };
 
 const ensureExercisesSeeded = async () => {
@@ -286,9 +379,34 @@ const generateRecommendations = async (healthData) => {
 const submitHealthData = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const { date, weeksAfterDelivery, deliveryType, pelvicPain, backPain, abdominalPain,
+        const { date, weeksAfterDelivery, deliveryDate, deliveryType, pelvicPain, backPain, abdominalPain,
                 bleedingComplications, doctorRestrictions, fatigueLevel, mobilityLevel,
                 muscleWeakness, willingnessToExercise, mood, sentiment, stressKeywords } = req.body;
+        
+        // --- Calculate Weeks After Delivery from Delivery Date ---
+        let finalWeeks = weeksAfterDelivery;
+        let finalDeliveryDate = deliveryDate;
+
+        if (deliveryDate) {
+            // If provided in request, update user profile for "ask one time" logic
+            await User.findByIdAndUpdate(userId, { deliveryDate });
+            finalDeliveryDate = deliveryDate;
+        } else {
+            // If not provided, fetch from user profile
+            const user = await User.findById(userId);
+            if (user && user.deliveryDate) {
+                finalDeliveryDate = user.deliveryDate;
+            }
+        }
+
+        if (finalDeliveryDate) {
+            const birthDate = new Date(finalDeliveryDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - birthDate);
+            finalWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+            console.log(`[Exercise] Calculated weeks: ${finalWeeks} from delivery date: ${finalDeliveryDate}`);
+        }
+        // ---------------------------------------------------------
         
         // Get PPD risk level from screening module (mock for now)
         // In production, fetch from screening module API
@@ -298,7 +416,8 @@ const submitHealthData = async (req, res, next) => {
         const healthData = {
             userId,
             date,
-            weeksAfterDelivery,
+            deliveryDate: finalDeliveryDate,
+            weeksAfterDelivery: finalWeeks || weeksAfterDelivery || 0,
             deliveryType,
             pelvicPain: pelvicPain || false,
             backPain: backPain || false,
@@ -318,7 +437,7 @@ const submitHealthData = async (req, res, next) => {
         console.log('=== DEBUG: submitHealthData called ===');
         console.log('User ID:', userId);
         console.log('Date:', date);
-        console.log('Weeks:', weeksAfterDelivery, 'Delivery:', deliveryType);
+        console.log('Weeks:', finalWeeks, 'Delivery:', deliveryType);
         
         // Get ML-based risk prediction
         let mlRiskLevel = ppdRiskLevel;
@@ -326,7 +445,7 @@ const submitHealthData = async (req, res, next) => {
         let mlRecommendedExercises = [];
         try {
             const mlPrediction = await MLPredictionService.predictRisk({
-                weeksAfterDelivery: weeksAfterDelivery,
+                weeksAfterDelivery: finalWeeks || weeksAfterDelivery || 0,
                 deliveryType: deliveryType,
                 pelvicPain: pelvicPain || false,
                 backPain: backPain || false,
@@ -374,6 +493,12 @@ const submitHealthData = async (req, res, next) => {
             } else {
                 recommendations = await generateRecommendations({ ...healthData, safetyStatus: safety.safetyStatus, ppdRiskLevel: mlRiskLevel });
             }
+
+            // Apply Diary-based Mood Logic
+            const diaryEntry = await Diary.findOne({ userId, date });
+            const detectedMood = analyzeDiaryMood(diaryEntry ? diaryEntry.content : '', mood);
+            recommendations = applyDiaryRules(recommendations, detectedMood);
+
             healthData.recommendedExercises = recommendations;
         }
         
@@ -431,7 +556,7 @@ const submitHealthData = async (req, res, next) => {
                 };
                 
                 const englishName = rec.customName || rec.name;
-                const sinhalaName = sinhalaTranslations[englishName] || englishName;
+                const sinhalaName = rec.customNameSi || sinhalaTranslations[englishName] || englishName;
 
                 populatedRecommendations.push({
                     ...rec,
