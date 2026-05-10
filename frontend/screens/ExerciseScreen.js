@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, ScrollView, TouchableOpacity, StyleSheet,
     ActivityIndicator, Alert, Modal, TextInput, Switch,
-    Dimensions, Image, FlatList
+    Dimensions, Image, FlatList, Platform, Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import * as DocumentPicker from 'expo-document-picker';
 import { Video, ResizeMode } from 'expo-av';
+import { WebView } from 'react-native-webview';
 import exerciseService from '../services/exerciseService';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -22,8 +23,7 @@ const todayStr = () => {
 
 // Health Data Input Component
 const HealthDataForm = ({ onSubmit, loading, initialData }) => {
-    const { t, i18n } = useTranslation();
-    const isSinhala = i18n.language === 'si';
+    const { t } = useTranslation();
     
     const [weeks, setWeeks] = useState(initialData?.weeksAfterDelivery || '');
     const [deliveryType, setDeliveryType] = useState(initialData?.deliveryType || 'normal');
@@ -39,7 +39,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
     
     const handleSubmit = () => {
         if (!weeks) {
-            Toast.show({ type: 'error', text1: isSinhala ? 'කරුණාකර සති ගණන ඇතුළත් කරන්න' : 'Please enter weeks after delivery' });
+            Toast.show({ type: 'error', text1: t('Please enter weeks after delivery') });
             return;
         }
         onSubmit({
@@ -61,16 +61,16 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
     return (
         <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
             <Text style={styles.formTitle}>
-                {isSinhala ? '📝 අද ඔබේ සෞඛ්‍ය තත්වය' : '📝 Today\'s Health Status'}
+                {t("Today's Health Status")}
             </Text>
             
             <View style={styles.inputGroup}>
                 <Text style={styles.label}>
-                    {isSinhala ? 'දරු ප්‍රසූතියෙන් පසු සති ගණන' : 'Weeks after delivery'}
+                    {t('Weeks after delivery')}
                 </Text>
                 <TextInput
                     style={styles.input}
-                    placeholder={isSinhala ? 'උදා: 4' : 'e.g., 4'}
+                    placeholder={t("e.g., 4")}
                     keyboardType="numeric"
                     value={String(weeks)}
                     onChangeText={setWeeks}
@@ -79,14 +79,14 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{isSinhala ? 'දරු ප්‍රසූති වර්ගය' : 'Delivery Type'}</Text>
+                <Text style={styles.label}>{t('Delivery Type')}</Text>
                 <View style={styles.rowButtons}>
                     <TouchableOpacity
                         style={[styles.optionBtn, deliveryType === 'normal' && styles.optionBtnActive]}
                         onPress={() => setDeliveryType('normal')}
                     >
                         <Text style={[styles.optionText, deliveryType === 'normal' && styles.optionTextActive]}>
-                            {isSinhala ? 'සාමාන්‍ය' : 'Normal'}
+                            {t('Normal')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -94,47 +94,47 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                         onPress={() => setDeliveryType('c-section')}
                     >
                         <Text style={[styles.optionText, deliveryType === 'c-section' && styles.optionTextActive]}>
-                            {isSinhala ? 'සිසේරියන්' : 'C-Section'}
+                            {t('C-Section')}
                         </Text>
                     </TouchableOpacity>
                 </View>
             </View>
             
             <Text style={[styles.label, { marginTop: 8 }]}>
-                {isSinhala ? 'වේදනා තත්වයන්' : 'Pain Conditions'}
+                {t('Pain Conditions')}
             </Text>
             <View style={styles.checkboxGroup}>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setPelvicPain(!pelvicPain)}>
                     <View style={[styles.checkbox, pelvicPain && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'ශ්‍රෝණි වේදනාව' : 'Pelvic Pain'}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Pelvic Pain')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setBackPain(!backPain)}>
                     <View style={[styles.checkbox, backPain && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'පිටුපස වේදනාව' : 'Back Pain'}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Back Pain')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setAbdominalPain(!abdominalPain)}>
                     <View style={[styles.checkbox, abdominalPain && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'උදර වේදනාව' : 'Abdominal Pain'}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Abdominal Pain')}</Text>
                 </TouchableOpacity>
             </View>
             
             <View style={styles.checkboxGroup}>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setBleeding(!bleeding)}>
                     <View style={[styles.checkbox, bleeding && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'රුධිර වහන සංකූලතා' : 'Bleeding Complications'}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Bleeding Complications')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setDoctorRestrictions(!doctorRestrictions)}>
                     <View style={[styles.checkbox, doctorRestrictions && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'වෛද්‍ය සීමා කිරීම්' : 'Doctor Restrictions'}</Text>
+                    <Text style={styles.checkboxLabel}>{t("Doctor's Restrictions")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setMuscleWeakness(!muscleWeakness)}>
                     <View style={[styles.checkbox, muscleWeakness && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{isSinhala ? 'මාංශ පේශි දුර්වලතාවය' : 'Muscle Weakness'}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Muscle Weakness')}</Text>
                 </TouchableOpacity>
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{isSinhala ? 'තෙහෙට්ටුව මට්ටම' : 'Fatigue Level'}</Text>
+                <Text style={styles.label}>{t('Fatigue Level Label')}</Text>
                 <View style={styles.rowButtons}>
                     {['low', 'medium', 'high'].map(level => (
                         <TouchableOpacity
@@ -143,9 +143,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                             onPress={() => setFatigue(level)}
                         >
                             <Text style={[styles.optionText, fatigue === level && styles.optionTextActive]}>
-                                {isSinhala ? 
-                                    (level === 'low' ? 'අඩු' : level === 'medium' ? 'මධ්‍යම' : 'ඉහළ') :
-                                    (level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High')}
+                                {t(level.charAt(0).toUpperCase() + level.slice(1))}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -153,7 +151,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{isSinhala ? 'චලනය කිරීමේ හැකියාව' : 'Mobility Level'}</Text>
+                <Text style={styles.label}>{t('Mobility Level Label')}</Text>
                 <View style={styles.columnButtons}>
                     {['very_limited', 'limited', 'normal'].map(level => (
                         <TouchableOpacity
@@ -162,9 +160,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                             onPress={() => setMobility(level)}
                         >
                             <Text style={[styles.optionText, mobility === level && styles.optionTextActive]}>
-                                {isSinhala ?
-                                    (level === 'very_limited' ? 'ඉතා සීමිත' : level === 'limited' ? 'සීමිත' : 'සාමාන්‍ය') :
-                                    (level === 'very_limited' ? 'Very Limited' : level === 'limited' ? 'Limited' : 'Normal')}
+                                {t(level === 'very_limited' ? 'Very Restricted' : level === 'limited' ? 'Restricted' : 'Normal Mobility')}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -172,7 +168,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{isSinhala ? 'ව්‍යායාම කිරීමට කැමැත්ත' : 'Willingness to Exercise'}</Text>
+                <Text style={styles.label}>{t('Willingness to Exercise Label')}</Text>
                 <View style={styles.rowButtons}>
                     {['low', 'medium', 'high'].map(level => (
                         <TouchableOpacity
@@ -181,9 +177,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                             onPress={() => setWillingness(level)}
                         >
                             <Text style={[styles.optionText, willingness === level && styles.optionTextActive]}>
-                                {isSinhala ?
-                                    (level === 'low' ? 'අඩු' : level === 'medium' ? 'මධ්‍යම' : 'ඉහළ') :
-                                    (level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High')}
+                                {t(level.charAt(0).toUpperCase() + level.slice(1))}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -199,7 +193,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
                     <ActivityIndicator color="#fff" />
                 ) : (
                     <Text style={styles.submitBtnText}>
-                        {isSinhala ? '✨ ව්‍යායාම නිර්දේශ ලබා ගන්න' : '✨ Get Exercise Recommendations'}
+                        {t('Get Exercise Recommendation')}
                     </Text>
                 )}
             </TouchableOpacity>
@@ -207,10 +201,93 @@ const HealthDataForm = ({ onSubmit, loading, initialData }) => {
     );
 };
 
+// YouTube Player Component
+const YouTubePlayer = ({ url, style }) => {
+    const { t } = useTranslation();
+    const [error, setError] = useState(false);
+    const webViewRef = useRef(null);
+    
+    const getEmbedUrl = (videoUrl) => {
+        if (!videoUrl) return '';
+        let videoId = '';
+        
+        if (videoUrl.includes('youtube.com/embed/')) {
+            return videoUrl;
+        }
+        
+
+        
+        if (videoUrl.includes('youtu.be/')) {
+            videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+        } else if (videoUrl.includes('youtube.com/watch')) {
+            const urlParams = new URLSearchParams(videoUrl.split('?')[1]);
+            videoId = urlParams.get('v');
+        }
+        
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1&rel=0&modestbranding=1`;
+        }
+        
+        return videoUrl;
+    };
+    
+    const embedUrl = getEmbedUrl(url);
+    
+    return (
+        <View style={[styles.videoPlayer, { overflow: 'hidden' }]}>
+            {error && (
+                <View style={styles.webViewErrorContainer}>
+                    <Text style={styles.webViewErrorText}>
+                        {t('Failed to load video')}
+                    </Text>
+                    <TouchableOpacity 
+                        style={styles.webViewRetryBtn}
+                        onPress={() => {
+                            setError(false);
+                            webViewRef.current?.reload();
+                        }}
+                    >
+                        <Text style={styles.webViewRetryBtnText}>
+                            {t('Retry')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+            {Platform.OS === 'web' ? (
+                <iframe
+                    src={embedUrl}
+                    style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                />
+            ) : (
+                <WebView
+                    ref={webViewRef}
+                    source={{ uri: embedUrl }}
+                    style={styles.webView}
+                    allowsFullscreenVideo={true}
+                    allowsInlineMediaPlayback={true}
+                    mediaPlaybackRequiresUserAction={false}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    startInLoadingState={true}
+                    renderLoading={() => (
+                        <View style={styles.webViewLoadingContainer}>
+                            <ActivityIndicator size="large" color="#7C3AED" />
+                        </View>
+                    )}
+                    onError={() => {
+                        setError(true);
+                    }}
+                />
+            )}
+        </View>
+    );
+};
+
 // Exercise Recommendation Card Component
 const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
-    const { t, i18n } = useTranslation();
-    const isSinhala = i18n.language === 'si';
+    const { t } = useTranslation();
     const [videoModal, setVideoModal] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [uploading, setUploading] = useState(false);
@@ -220,7 +297,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
     const details = exercise.exerciseDetails || {};
     
     // Get videos array (supports both old videoUrl and new videos array)
-    const videoList = details.videos || (details.videoUrl ? [{ url: details.videoUrl, title: details.name, titleSi: details.nameSi, duration: `${details.duration} min`, source: "YouTube" }] : []);
+    const videoList = details.videos || (details.videoUrl ? [{ url: details.videoUrl, title: details.name, titleSi: details.nameSi, duration: `${details.duration} ${t('min')}`, source: t("YouTube") }] : []);
     const hasMultipleVideos = videoList.length > 1;
     
     const getExerciseIcon = (type) => {
@@ -240,7 +317,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 copyToCacheDirectory: true
             });
             
-            if (result.canceled) return;
+            if (result.canceled || !result.assets || result.assets.length === 0) return;
             
             setSelectedVideo(result.assets[0]);
             setUploading(true);
@@ -249,8 +326,8 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
             
             Toast.show({
                 type: response.accuracy > 70 ? 'success' : 'info',
-                text1: isSinhala ? '📊 විශ්ලේෂණය සම්පූර්ණයි' : '📊 Analysis Complete',
-                text2: isSinhala ? response.feedbackSi : response.feedback,
+                text1: `📊 ${t('Analysis Complete')}`,
+                text2: response.feedbackSi || response.feedback,
                 position: 'top',
                 visibilityTime: 4000
             });
@@ -258,7 +335,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
             setVideoModal(false);
             setSelectedVideo(null);
         } catch (err) {
-            Toast.show({ type: 'error', text1: isSinhala ? 'උඩුගත කිරීම අසාර්ථකයි' : 'Upload failed', text2: err.message });
+            Toast.show({ type: 'error', text1: t('Upload failed'), text2: err.message });
         } finally {
             setUploading(false);
         }
@@ -272,9 +349,9 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
             <Text style={styles.videoOptionIcon}>📹</Text>
             <View style={styles.videoOptionInfo}>
                 <Text style={styles.videoOptionTitle}>
-                    {isSinhala ? item.titleSi || `${item.title} ${index + 1}` : item.title || `Video ${index + 1}`}
+                    {item.titleSi || (item.title || `${t('Video')} ${index + 1}`)}
                 </Text>
-                <Text style={styles.videoOptionDuration}>{item.duration || `${details.duration} min`} • {item.source || 'YouTube'}</Text>
+                <Text style={styles.videoOptionDuration}>{item.duration || `${details.duration} ${t('min')}`} • {item.source === 'YouTube' ? t('YouTube') : (item.source || t('YouTube'))}</Text>
             </View>
             <Text style={styles.videoOptionArrow}>→</Text>
         </TouchableOpacity>
@@ -289,16 +366,12 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 <Text style={styles.exerciseIcon}>{getExerciseIcon(details.type)}</Text>
                 <View style={styles.exerciseInfo}>
                     <Text style={styles.exerciseName}>
-                        {isSinhala ? details.nameSi : details.name}
+                        {details.nameSi || details.name}
                     </Text>
                     <Text style={styles.exerciseMeta}>
-                        {isSinhala ? '⏱️ කාලය' : '⏱️ Duration'}: {details.duration || exercise.duration} min • 
-                        {isSinhala ? '📊 තීව්‍රතාවය' : '📊 Intensity'}: {
-                            isSinhala ?
-                                (details.intensity === 'low' ? 'අඩු' :
-                                 details.intensity === 'medium' ? 'මධ්‍යම' : 'පාලිත') :
-                                (details.intensity === 'low' ? 'Low' :
-                                 details.intensity === 'medium' ? 'Medium' : 'Controlled')
+                        ⏱️ {t('Duration')}: {details.duration || exercise.duration} {t('min')} • 
+                        📊 {t('Intensity')}: {
+                            details.intensity ? t(details.intensity.charAt(0).toUpperCase() + details.intensity.slice(1)) : ''
                         }
                     </Text>
                 </View>
@@ -312,21 +385,21 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 )}
                 {isCompleted && (
                     <View style={styles.completedBadge}>
-                        <Text style={styles.completedBadgeText}>✓ {isSinhala ? 'සම්පූර්ණයි' : 'Done'}</Text>
+                        <Text style={styles.completedBadgeText}>✓ {t('Done')}</Text>
                     </View>
                 )}
             </View>
             
             <Text style={styles.exerciseDesc}>
-                {isSinhala ? details.descriptionSi : details.description}
+                {details.descriptionSi || details.description}
             </Text>
             
             {details.steps && details.steps.length > 0 && (
                 <View style={styles.stepsContainer}>
-                    <Text style={styles.stepsTitle}>{isSinhala ? '📋 පියවර' : '📋 Steps'}:</Text>
+                    <Text style={styles.stepsTitle}>📋 {t('Steps')}:</Text>
                     {details.steps.slice(0, 3).map((step, idx) => (
                         <Text key={idx} style={styles.stepText}>
-                            {idx + 1}. {isSinhala ? step.instructionSi : step.instruction}
+                            {idx + 1}. {step.instructionSi || step.instruction}
                         </Text>
                     ))}
                 </View>
@@ -342,7 +415,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                     }}
                 >
                     <Text style={styles.watchVideoBtnText}>
-                        🎬 {isSinhala ? 'වීඩියෝ නරඹන්න' : 'Watch Video'} 
+                        🎬 {t('Watch Video')} 
                         {hasMultipleVideos ? ` (${videoList.length})` : ''}
                     </Text>
                 </TouchableOpacity>
@@ -354,7 +427,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                     style={styles.videoBtn}
                     onPress={handleUpload}
                 >
-                    <Text style={styles.videoBtnText}>📹 {isSinhala ? 'ඔබගේ වීඩියෝව උඩුගත කරන්න' : 'Upload Your Exercise Video'}</Text>
+                    <Text style={styles.videoBtnText}>📹 {t('Upload Your Exercise Video')}</Text>
                 </TouchableOpacity>
             )}
             
@@ -367,7 +440,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.videoModalContent}>
                         <Text style={styles.modalTitle}>
-                            {isSinhala ? '🎥 වීඩියෝවක් තෝරන්න' : '🎥 Select a Video'}
+                            {t('Select a Video')}
                         </Text>
                         
                         {!selectedVideo ? (
@@ -386,35 +459,56 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                                     style={styles.backToVideoList}
                                     onPress={() => setSelectedVideo(null)}
                                 >
-                                    <Text style={styles.backToVideoListText}>← {isSinhala ? 'ආපසු' : 'Back'} to videos</Text>
+                                    <Text style={styles.backToVideoListText}>← {t('Back')} {t('to videos')}</Text>
                                 </TouchableOpacity>
                                 
-                                <Video
-                                    ref={videoRef}
-                                    source={{ uri: selectedVideo.url }}
-                                    rate={1.0}
-                                    volume={1.0}
-                                    isMuted={false}
-                                    shouldPlay={videoPlaying}
-                                    useNativeControls
-                                    resizeMode={ResizeMode.CONTAIN}
-                                    style={styles.videoPlayer}
-                                    onError={(error) => console.log('Video error:', error)}
-                                />
+                                {(selectedVideo.url.includes('youtube') || selectedVideo.url.includes('youtu.be')) ? (
+                                    <YouTubePlayer 
+                                        url={selectedVideo.url} 
+                                        style={styles.videoPlayer}
+                                    />
+                                ) : (
+                                    <Video
+                                        ref={videoRef}
+                                        source={{ uri: selectedVideo.url }}
+                                        rate={1.0}
+                                        volume={1.0}
+                                        isMuted={false}
+                                        shouldPlay={videoPlaying}
+                                        useNativeControls
+                                        resizeMode={ResizeMode.CONTAIN}
+                                        style={styles.videoPlayer}
+                                        onError={(error) => console.log('Video error:', error)}
+                                    />
+                                )}
                                 
                                 <View style={styles.videoControls}>
                                     <TouchableOpacity 
                                         style={styles.playBtn} 
-                                        onPress={() => setVideoPlaying(!videoPlaying)}
+                                        onPress={() => {
+                                            if (selectedVideo.url.includes('youtube') || selectedVideo.url.includes('youtu.be')) {
+                                                // YouTube video already playing in WebView, don't interfere
+                                                return;
+                                            } else {
+                                                if (videoPlaying) {
+                                                    videoRef.current?.pauseAsync();
+                                                } else {
+                                                    videoRef.current?.playAsync();
+                                                }
+                                                setVideoPlaying(!videoPlaying);
+                                            }
+                                        }}
                                     >
                                         <Text style={styles.playBtnText}>
-                                            {videoPlaying ? '⏸ Pause' : '▶ Play'}
+                                            {(selectedVideo.url.includes('youtube') || selectedVideo.url.includes('youtu.be'))
+                                                ? t('YouTube Video')
+                                                : (videoPlaying ? '⏸ ' + t('Pause') : '▶ ' + t('Play'))}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
                                 
                                 <Text style={styles.videoTitle}>
-                                    {isSinhala ? selectedVideo.titleSi : selectedVideo.title}
+                                    {selectedVideo.titleSi || selectedVideo.title}
                                 </Text>
                             </>
                         )}
@@ -424,7 +518,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                             setVideoPlaying(false);
                             setSelectedVideo(null);
                         }}>
-                            <Text style={styles.modalCloseText}>{isSinhala ? 'වසන්න' : 'Close'}</Text>
+                            <Text style={styles.modalCloseText}>{t('Close')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -434,42 +528,43 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
 };
 
 // Progress Dashboard Component
-const ProgressDashboard = ({ progress, isSinhala }) => {
+const ProgressDashboard = ({ progress }) => {
+    const { t } = useTranslation();
     if (!progress) return null;
     
     return (
         <View style={styles.progressContainer}>
             <Text style={styles.progressTitle}>
-                {isSinhala ? '📊 ඔබේ ප්‍රගතිය' : '📊 Your Progress'}
+                {t('Your Progress')}
             </Text>
             
             <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
                     <Text style={styles.statValue}>{progress.totalExercises}</Text>
-                    <Text style={styles.statLabel}>{isSinhala ? 'සම්පූර්ණ ව්‍යායාම' : 'Total Exercises'}</Text>
+                    <Text style={styles.statLabel}>{t('Total Exercises')}</Text>
                 </View>
                 <View style={styles.statBox}>
                     <Text style={styles.statValue}>{progress.averageAccuracy}%</Text>
-                    <Text style={styles.statLabel}>{isSinhala ? 'සාමාන්‍ය නිරවද්‍යතාව' : 'Avg Accuracy'}</Text>
+                    <Text style={styles.statLabel}>{t('Avg Accuracy')}</Text>
                 </View>
                 <View style={styles.statBox}>
                     <Text style={styles.statValue}>{progress.currentStreak}</Text>
-                    <Text style={styles.statLabel}>{isSinhala ? 'වත්මන් අඛණ්ඩතාව' : 'Current Streak'}</Text>
+                    <Text style={styles.statLabel}>{t('Current Streak')}</Text>
                 </View>
                 <View style={styles.statBox}>
                     <Text style={styles.statValue}>{progress.bestStreak}</Text>
-                    <Text style={styles.statLabel}>{isSinhala ? 'හොඳම අඛණ්ඩතාව' : 'Best Streak'}</Text>
+                    <Text style={styles.statLabel}>{t('Best Streak')}</Text>
                 </View>
             </View>
             
             {progress.progressData && progress.progressData.length > 0 && (
                 <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>{isSinhala ? 'සතිපතා නිරවද්‍යතාව' : 'Weekly Accuracy'}</Text>
+                    <Text style={styles.chartTitle}>{t('Weekly Accuracy')}</Text>
                     <View style={styles.barChart}>
                         {progress.progressData.slice(-7).map((item, idx) => (
                             <View key={idx} style={styles.barItem}>
-                                <View style={[styles.bar, { height: Math.min(item.avgAccuracy / 2, 80) }]} />
-                                <Text style={styles.barLabel}>{item.date.slice(5)}</Text>
+                                <View style={[styles.bar, { height: Math.min((item.avgAccuracy || 0) / 2, 80) }]} />
+                                <Text style={styles.barLabel}>{item.date ? item.date.slice(5) : ''}</Text>
                             </View>
                         ))}
                     </View>
@@ -481,18 +576,17 @@ const ProgressDashboard = ({ progress, isSinhala }) => {
 
 // Safety Warning Component
 const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
-    const { i18n } = useTranslation();
-    const isSinhala = i18n.language === 'si';
-    const message = isSinhala ? safetyMessageSi : safetyMessage;
+    const { t } = useTranslation();
+    const message = safetyMessageSi || safetyMessage;
     
     if (safetyStatus === 'blocked') {
         return (
             <View style={styles.safetyBlocked}>
                 <Text style={styles.safetyIcon}>⚠️</Text>
-                <Text style={styles.safetyTitle}>{isSinhala ? 'අනතුරු ඇඟවීම' : 'Warning'}</Text>
+                <Text style={styles.safetyTitle}>{t('Warning')}</Text>
                 <Text style={styles.safetyMessage}>{message}</Text>
                 <Text style={styles.safetyAdvice}>
-                    {isSinhala ? '👩‍⚕️ කරුණාකර ඔබේ වෛද්‍යවරයා හමුවන්න' : '👩‍⚕️ Please consult your doctor'}
+                    {t('Please consult your doctor')}
                 </Text>
             </View>
         );
@@ -502,10 +596,10 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
         return (
             <View style={styles.safetyLimited}>
                 <Text style={styles.safetyIcon}>⚠️</Text>
-                <Text style={styles.safetyTitle}>{isSinhala ? 'සීමිත ව්‍යායාම' : 'Limited Exercise'}</Text>
+                <Text style={styles.safetyTitle}>{t('Limited')}</Text>
                 <Text style={styles.safetyMessage}>{message}</Text>
                 <Text style={styles.safetySubtext}>
-                    {isSinhala ? 'මෘදු ව්‍යායාම පමණක් නිර්දේශ කෙරේ' : 'Only gentle exercises are recommended'}
+                    {t('Only gentle exercises are recommended')}
                 </Text>
             </View>
         );
@@ -514,9 +608,9 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
     return (
         <View style={styles.safetySafe}>
             <Text style={styles.safetyIcon}>✅</Text>
-            <Text style={styles.safetyTitle}>{isSinhala ? 'ආරක්ෂිතයි' : 'Safe'}</Text>
+            <Text style={styles.safetyTitle}>{t('Safe')}</Text>
             <Text style={styles.safetyMessage}>
-                {isSinhala ? 'ඔබගේ තත්වය ව්‍යායාම සඳහා සුදුසුයි' : 'Your condition is suitable for exercise'}
+                {t('Your condition is suitable for exercise')}
             </Text>
         </View>
     );
@@ -524,7 +618,7 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
 
 // Main Exercise Screen
 export default function ExerciseScreen({ navigation }) {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const isSinhala = i18n.language === 'si';
     const [hasData, setHasData] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
@@ -590,15 +684,15 @@ export default function ExerciseScreen({ navigation }) {
                 
                 Toast.show({
                     type: response.safetyStatus === 'blocked' ? 'error' : 'success',
-                    text1: isSinhala ? '✅ තොරතුරු සුරකින ලදී' : '✅ Information Saved',
+                    text1: `✅ ${t('Information Saved')}`,
                     position: 'top'
                 });
             }
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: isSinhala ? '❌ දෝෂයක්' : '❌ Error',
-                text2: err.response?.data?.message || 'Failed to save data',
+                text1: `❌ ${t('Error')}`,
+                text2: err.response?.data?.message || t('Failed to save data'),
                 position: 'top'
             });
         } finally {
@@ -626,7 +720,7 @@ export default function ExerciseScreen({ navigation }) {
             
             Toast.show({
                 type: 'success',
-                text1: isSinhala ? '🎉 ව්‍යායාම සම්පූර්ණයි!' : '🎉 Exercise Completed!',
+                text1: `🎉 ${t('Exercise Completed!')}`,
                 position: 'top'
             });
             
@@ -634,7 +728,7 @@ export default function ExerciseScreen({ navigation }) {
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: isSinhala ? 'සුරැකීම අසාර්ථකයි' : 'Failed to save',
+                text1: t('Failed to save'),
                 position: 'top'
             });
         }
@@ -664,7 +758,7 @@ export default function ExerciseScreen({ navigation }) {
                     <View style={styles.headerCenter}>
                         <Text style={styles.headerEmoji}>🏃‍♀️</Text>
                         <Text style={styles.headerTitle}>
-                            {isSinhala ? 'පශ්චාත් ප්‍රසව ව්‍යායාම' : 'Postpartum Exercise'}
+                            {t('Postpartum Exercise')}
                         </Text>
                     </View>
                     <View style={styles.backBtn} />
@@ -695,7 +789,7 @@ export default function ExerciseScreen({ navigation }) {
                     {!showForm && hasData && recommendations.length > 0 && safetyStatus !== 'blocked' && (
                         <View style={styles.recommendationsContainer}>
                             <Text style={styles.recommendationsTitle}>
-                                {isSinhala ? '📋 අද ඔබගේ ව්‍යායාම සැලැස්ම' : '📋 Today\'s Exercise Plan'}
+                                {t("Today's Exercise Plan")}
                             </Text>
                             {recommendations.map((rec, idx) => (
                                 <ExerciseCard
@@ -714,12 +808,10 @@ export default function ExerciseScreen({ navigation }) {
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyEmoji}>🌸</Text>
                             <Text style={styles.emptyTitle}>
-                                {isSinhala ? 'විවේක දිනයක්' : 'A Rest Day'}
+                                {t('A Rest Day')}
                             </Text>
                             <Text style={styles.emptyText}>
-                                {isSinhala ?
-                                    'ඔබගේ වත්මන් තත්වය අනුව, අද ව්‍යායාම නිර්දේශ නොකෙරේ. විවේක ගැනීම සහ සජලනය වීම වැදගත් වේ.' :
-                                    'Based on your current condition, no exercise is recommended today. Rest and hydration are important.'}
+                                {t('Based on your current condition, no exercise is recommended today. Rest and hydration are important.')}
                             </Text>
                         </View>
                     )}
@@ -729,12 +821,10 @@ export default function ExerciseScreen({ navigation }) {
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyEmoji}>🩺</Text>
                             <Text style={styles.emptyTitle}>
-                                {isSinhala ? 'වෛද්‍ය උපදෙස් අවශ්‍යයි' : 'Medical Advice Needed'}
+                                {t('Medical Advice Needed')}
                             </Text>
                             <Text style={styles.emptyText}>
-                                {isSinhala ?
-                                    'කරුණාකර ඔබේ වෛද්‍යවරයා හමුවීමට පෙර ව්‍යායාම ආරම්භ නොකරන්න.' :
-                                    'Please consult your doctor before starting any exercise.'}
+                                {t('Please consult your doctor before starting any exercise.')}
                             </Text>
                         </View>
                     )}
@@ -746,7 +836,7 @@ export default function ExerciseScreen({ navigation }) {
                             onPress={() => setShowForm(true)}
                         >
                             <Text style={styles.addDataBtnText}>
-                                {isSinhala ? '+ නව සෞඛ්‍ය දත්ත ඇතුළත් කරන්න' : '+ Enter New Health Data'}
+                                {t('+ Enter New Health Data')}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -960,6 +1050,7 @@ const styles = StyleSheet.create({
     // Video Modal Styles
     videoModalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 24, width: width - 40, alignItems: 'center', maxHeight: '90%' },
     videoPlayer: { width: width - 80, height: 220, borderRadius: 12, marginBottom: 16, backgroundColor: '#000' },
+    videoPlayerCentered: { justifyContent: 'center', alignItems: 'center' },
     videoControls: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
     playBtn: { backgroundColor: '#7C3AED', paddingHorizontal: 28, paddingVertical: 10, borderRadius: 24 },
     playBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
@@ -980,6 +1071,53 @@ const styles = StyleSheet.create({
     backToVideoList: { alignSelf: 'flex-start', marginBottom: 12 },
     backToVideoListText: { fontSize: 14, color: '#7C3AED', fontWeight: '600' },
     videoTitle: { fontSize: 14, color: '#374151', textAlign: 'center', marginBottom: 12 },
+    
+    // WebView Styles
+    webView: {
+        flex: 1,
+    },
+    webViewLoadingContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
+        zIndex: 10,
+    },
+    webViewLoadingText: {
+        color: '#fff',
+        marginTop: 10,
+        fontSize: 12,
+    },
+    webViewErrorContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
+        zIndex: 10,
+    },
+    webViewErrorText: {
+        color: '#fff',
+        fontSize: 14,
+        marginBottom: 15,
+    },
+    webViewRetryBtn: {
+        backgroundColor: '#7C3AED',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+    webViewRetryBtnText: {
+        color: '#fff',
+        fontWeight: '600',
+    },
     
     // Empty State
     emptyContainer: {

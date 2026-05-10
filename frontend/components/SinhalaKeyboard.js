@@ -42,7 +42,7 @@ export default function SinhalaKeyboard({ onKeyPress, onClose }) {
             <View style={styles.header}>
                 <Text style={styles.title}>⌨️ සිංහල යතුරු පුවරුව</Text>
                 <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                    <Text style={styles.closeText}>✕ Close</Text>
+                    <Text style={styles.closeText}>✕ වසන්න</Text>
                 </TouchableOpacity>
             </View>
 
@@ -73,7 +73,7 @@ export default function SinhalaKeyboard({ onKeyPress, onClose }) {
                         onPress={() => onKeyPress('SPACE')}
                         activeOpacity={0.6}
                     >
-                        <Text style={styles.specialKeyText}>Space</Text>
+                        <Text style={styles.specialKeyText}>හිස්තැන</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity

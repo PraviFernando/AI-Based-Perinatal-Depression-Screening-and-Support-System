@@ -31,29 +31,29 @@ const toDateString = (d) => {
     return `${y}-${m}-${day}`;
 };
 
-const formatDisplay = (dateStr) => {
+const formatDisplay = (dateStr, t) => {
     if (!dateStr) return '';
     const [y, m, d] = dateStr.split('-');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[parseInt(m, 10) - 1]} ${d}, ${y}`;
+    return `${t(months[parseInt(m, 10) - 1])} ${d}, ${y}`;
 };
 
-const getDayName = (dateStr) => {
+const getDayName = (dateStr, t) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return days[date.getDay()];
+    return t(days[date.getDay()]);
 };
 
-const getMonthName = (dateStr) => {
+const getMonthName = (dateStr, t) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[date.getMonth()];
+    return t(months[date.getMonth()]);
 };
 
-const analyzeSentiment = (text) => {
-    if (!text || text.trim().length === 0) return 'Skipped';
+const analyzeSentiment = (text, t) => {
+    if (!text || text.trim().length === 0) return t('Skipped');
     const lower = text.toLowerCase();
 
     // Simple Keyword based Sentiment Analysis
@@ -66,16 +66,16 @@ const analyzeSentiment = (text) => {
     posWords.forEach(w => { if (lower.includes(w)) posCount++; });
     negWords.forEach(w => { if (lower.includes(w)) negCount++; });
 
-    if (posCount > negCount) return 'Positive Mind';
-    if (negCount > posCount) return 'Negative Mind';
-    return 'Neutral Mind';
+    if (posCount > negCount) return t('Positive Mind');
+    if (negCount > posCount) return t('Negative Mind');
+    return t('Neutral Mind');
 };
 
-const getGreeting = () => {
+const getGreeting = (t) => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning ☀️";
-    if (hour < 18) return "Good Afternoon ⛅";
-    return "Good Evening 🌙";
+    if (hour < 12) return t("Good Morning ☀️");
+    if (hour < 18) return t("Good Afternoon ⛅");
+    return t("Good Evening 🌙");
 };
 
 const MOODS = ['😊', '😌', '😔', '😪', '😠', '🌈', '🌟', '☁️'];
@@ -156,7 +156,7 @@ export default function DiaryScreen({ navigation }) {
             setCurrentTheme(data.theme || 'default');
             setMedia(data.media || []);
             setMood(data.mood || '😊');
-            setSentiment(data.sentiment || analyzeSentiment(data.content || ''));
+            setSentiment(data.sentiment || analyzeSentiment(data.content || '', t));
             setIsUnlocked(!data.isLocked);
         } catch (err) {
             setContent('');
@@ -186,7 +186,7 @@ export default function DiaryScreen({ navigation }) {
         try {
             if (needsSetup) {
                 await api.post('/diary/auth/set', { password: passwordInput });
-                Toast.show({ type: 'success', text1: 'Password Set', position: 'top' });
+                Toast.show({ type: 'success', text1: t('Password Set'), position: 'top' });
                 setNeedsSetup(false);
                 setIsUnlocked(true);
                 setPasswordModalVisible(false);
@@ -205,11 +205,11 @@ export default function DiaryScreen({ navigation }) {
                 } else if (res.data.needsSetup) {
                     setNeedsSetup(true);
                 } else {
-                    Toast.show({ type: 'error', text1: 'Incorrect Password', position: 'top' });
+                    Toast.show({ type: 'error', text1: t('Incorrect Password'), position: 'top' });
                 }
             }
         } catch (err) {
-            Toast.show({ type: 'error', text1: 'Error verifying password.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Error verifying password.'), position: 'top' });
         }
     };
 
@@ -217,7 +217,7 @@ export default function DiaryScreen({ navigation }) {
         if (isLocked) {
             setIsLocked(false);
             saveDiary(content, false, currentTheme, media, mood, sentiment);
-            Toast.show({ type: 'info', text1: 'Entry Unlocked', position: 'top' });
+            Toast.show({ type: 'info', text1: t('Entry Unlocked'), position: 'top' });
         } else {
             try {
                 const res = await api.post('/diary/auth/check', { password: '' });
@@ -255,7 +255,7 @@ export default function DiaryScreen({ navigation }) {
             }
         }
         setContent(newText);
-        const newSentiment = analyzeSentiment(newText);
+        const newSentiment = analyzeSentiment(newText, t);
         setSentiment(newSentiment);
         setSaveStatus('saving');
         if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -306,7 +306,7 @@ export default function DiaryScreen({ navigation }) {
             setMedia(newMedia);
             saveDiary(content, isLocked, currentTheme, newMedia, mood, sentiment);
         } catch (err) {
-            Toast.show({ type: 'error', text1: 'Error adding file.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Error adding file.'), position: 'top' });
         }
     };
 
@@ -319,7 +319,7 @@ export default function DiaryScreen({ navigation }) {
 
     const startListening = useCallback(() => {
         if (Platform.OS !== 'web') {
-            Toast.show({ type: 'info', text1: 'Voice input is available on the web version.', position: 'top' });
+            Toast.show({ type: 'info', text1: t('Voice input is available on the web version.'), position: 'top' });
             return;
         }
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -380,7 +380,7 @@ export default function DiaryScreen({ navigation }) {
                     <View style={s.insightSection}>
                         <View style={{ flex: 1 }}>
                             <Text style={[s.insightTitle, { color: tc.text }]}>{t('Analytics & Insights')}</Text>
-                            <Text style={[s.insightSub, { color: tc.text }]}>{getGreeting()}</Text>
+                            <Text style={[s.insightSub, { color: tc.text }]}>{getGreeting(t)}</Text>
                         </View>
                     </View>
 
@@ -401,7 +401,7 @@ export default function DiaryScreen({ navigation }) {
 
                     {/* ── Calendar Strip ── */}
                     <View style={s.calendarMonthWrap}>
-                        <Text style={[s.calendarMonthTitle, { color: tc.text }]}>{t(getMonthName(selectedDate))} {selectedDate.split('-')[0]}</Text>
+                        <Text style={[s.calendarMonthTitle, { color: tc.text }]}>{getMonthName(selectedDate, t)} {selectedDate.split('-')[0]}</Text>
                     </View>
                     <View style={s.calendarContainer}>
                         {[-3, -2, -1, 0, 1, 2, 3].map(offset => {
@@ -415,7 +415,7 @@ export default function DiaryScreen({ navigation }) {
                                     onPress={() => setSelectedDate(ds)}
                                     style={[s.calendarDay, isSelected && [s.calendarDayActive, { backgroundColor: tc.accent }]]}
                                 >
-                                    <Text style={[s.calendarDayName, isSelected && { color: '#FFF' }]}>{getDayName(ds)}</Text>
+                                    <Text style={[s.calendarDayName, isSelected && { color: '#FFF' }]}>{getDayName(ds, t)}</Text>
                                     <Text style={[s.calendarDayNum, isSelected && { color: '#FFF' }]}>{d.getDate()}</Text>
                                     {ds === today && <View style={[s.dotIndicator, isSelected ? { backgroundColor: '#FFF' } : { backgroundColor: tc.accent }]} />}
                                 </TouchableOpacity>
@@ -426,7 +426,7 @@ export default function DiaryScreen({ navigation }) {
                     {/* ── Sentiment and Date Display ── */}
                     <View style={s.sentimentRow}>
                         <View>
-                            <Text style={[s.sentimentDate, { color: tc.text }]}>{formatDisplay(selectedDate)}</Text>
+                            <Text style={[s.sentimentDate, { color: tc.text }]}>{formatDisplay(selectedDate, t)}</Text>
                             <Text style={[s.sentimentTitle, { color: tc.text }]}>{t('My mind state')}</Text>
                         </View>
                         <View style={[
@@ -440,7 +440,7 @@ export default function DiaryScreen({ navigation }) {
                                 sentiment === 'Positive Mind' ? { color: '#166534' } :
                                     sentiment === 'Negative Mind' ? { color: '#991b1b' } :
                                         sentiment === 'Neutral Mind' ? { color: '#475569' } : { color: '#9a3412' }
-                            ]}>{sentiment}</Text>
+                            ]}>{t(sentiment)}</Text>
                         </View>
                     </View>
 
@@ -476,7 +476,7 @@ export default function DiaryScreen({ navigation }) {
                             </ScrollView>
                             <View style={s.toolbarRight}>
                                 {saveStatus === 'saving' && <ActivityIndicator color={tc.accent} size="small" />}
-                                {saveStatus === 'saved' && <Text style={{ fontSize: 10, color: '#10B981' }}>Saved</Text>}
+                                {saveStatus === 'saved' && <Text style={{ fontSize: 10, color: '#10B981' }}>{t('Saved')}</Text>}
                                 <TouchableOpacity onPress={toggleLock} style={[s.iconBox, isLocked && { backgroundColor: '#FEE2E2' }]}>
                                     <Text style={s.iconText}>{isLocked ? '🔒' : '🔓'}</Text>
                                 </TouchableOpacity>
@@ -531,7 +531,7 @@ export default function DiaryScreen({ navigation }) {
                                 <TextInput
                                     style={[s.textArea, { color: tc.text }]}
                                     multiline
-                                    placeholder="Write your thoughts... let's begin your journey within."
+                                    placeholder={t("Write your thoughts... let's begin your journey within.")}
                                     placeholderTextColor="#94A3B8"
                                     value={content}
                                     onChangeText={handleContentChange}
@@ -540,7 +540,7 @@ export default function DiaryScreen({ navigation }) {
 
                                 {isListening && (
                                     <View style={[s.listeningBar, { borderColor: tc.accent }]}>
-                                        <Text style={[s.listeningText, { color: tc.accent }]}>Listening... {interimTranscript}</Text>
+                                        <Text style={[s.listeningText, { color: tc.accent }]}>{t('Listening...')} {interimTranscript}</Text>
                                     </View>
                                 )}
 
@@ -560,15 +560,15 @@ export default function DiaryScreen({ navigation }) {
             <Modal visible={passwordModalVisible} transparent animationType="fade" onRequestClose={() => setPasswordModalVisible(false)}>
                 <View style={s.modalOverlay}>
                     <View style={s.modalBox}>
-                        <Text style={s.modalTitle}>🔒 Diary Security</Text>
-                        <Text style={s.modalSubtitle}>{needsSetup ? "Create a simple password." : "Verify your identity."}</Text>
-                        <TextInput style={s.modalInput} placeholder="Password" secureTextEntry value={passwordInput} onChangeText={setPasswordInput} autoFocus />
+                        <Text style={s.modalTitle}>{t('Diary Security')}</Text>
+                        <Text style={s.modalSubtitle}>{needsSetup ? t("Create a simple password.") : t("Verify your identity.")}</Text>
+                        <TextInput style={s.modalInput} placeholder={t("Password")} secureTextEntry value={passwordInput} onChangeText={setPasswordInput} autoFocus />
                         <View style={s.modalActions}>
                             <TouchableOpacity style={s.modalCancel} onPress={() => setPasswordModalVisible(false)}>
-                                <Text style={s.modalCancelText}>Cancel</Text>
+                                <Text style={s.modalCancelText}>{t('Cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[s.modalConfirm, { backgroundColor: tc.accent }]} onPress={handleUnlockSubmit}>
-                                <Text style={s.modalConfirmText}>{needsSetup ? "Set" : "Unlock"}</Text>
+                                <Text style={s.modalConfirmText}>{needsSetup ? t("Set") : t("Unlock")}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

@@ -7,8 +7,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import api, { setAuthToken } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
+
+// ─── Helpers ──────────────────────────────────
+const formatDate = (dateStr, t) => {
+    const date = new Date(dateStr);
+    const months = [
+        t('January'), t('February'), t('March'), t('April'), t('May'), t('June'),
+        t('July'), t('August'), t('September'), t('October'), t('November'), t('December')
+    ];
+    return `${date.getFullYear()} ${months[date.getMonth()]} ${date.getDate()}`;
+};
 
 // ─── Stat Card ────────────────────────────────
 function StatCard({ icon, label, value, color }) {
@@ -23,10 +34,9 @@ function StatCard({ icon, label, value, color }) {
 
 // ─── Patient Card ─────────────────────────────
 function PatientCard({ patient, onView }) {
+    const { t } = useTranslation();
     const initials = patient.username?.slice(0, 2).toUpperCase() || '??';
-    const joined = new Date(patient.createdAt).toLocaleDateString('en-GB', {
-        day: 'numeric', month: 'short', year: 'numeric',
-    });
+    const joined = formatDate(patient.createdAt, t);
     return (
         <TouchableOpacity style={styles.patientCard} onPress={() => onView(patient)} activeOpacity={0.85}>
             <View style={styles.patientAvatar}>
@@ -35,7 +45,7 @@ function PatientCard({ patient, onView }) {
             <View style={styles.patientInfo}>
                 <Text style={styles.patientName}>{patient.username}</Text>
                 <Text style={styles.patientEmail} numberOfLines={1}>{patient.email}</Text>
-                <Text style={styles.patientJoined}>Joined: {joined}</Text>
+                <Text style={styles.patientJoined}>{t('Joined')}: {joined}</Text>
             </View>
             <View style={styles.patientChevron}>
                 <Text style={styles.chevronText}>›</Text>
@@ -46,10 +56,9 @@ function PatientCard({ patient, onView }) {
 
 // ─── Patient Detail Modal ─────────────────────
 function PatientModal({ visible, patient, onClose }) {
+    const { t } = useTranslation();
     if (!patient) return null;
-    const joined = new Date(patient.createdAt).toLocaleDateString('en-GB', {
-        day: 'numeric', month: 'long', year: 'numeric',
-    });
+    const joined = formatDate(patient.createdAt, t);
     const initials = patient.username?.slice(0, 2).toUpperCase() || '??';
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -66,7 +75,7 @@ function PatientModal({ visible, patient, onClose }) {
                     </View>
                     <View style={styles.detailRow}>
                         <Text style={styles.detailIcon}>📅</Text>
-                        <Text style={styles.detailText}>Joined {joined}</Text>
+                        <Text style={styles.detailText}>{t('Joined')} {joined}</Text>
                     </View>
                     <View style={styles.detailRow}>
                         <Text style={styles.detailIcon}>🏷️</Text>
@@ -76,7 +85,7 @@ function PatientModal({ visible, patient, onClose }) {
                     </View>
 
                     <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                        <Text style={styles.closeBtnText}>Close</Text>
+                        <Text style={styles.closeBtnText}>{t('Close')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -86,6 +95,7 @@ function PatientModal({ visible, patient, onClose }) {
 
 // ─── MAIN SCREEN ──────────────────────────────
 export default function MidwifeDashboardScreen({ navigation }) {
+    const { t } = useTranslation();
     const { user: authUser, token, logout } = useAuth();
     const [stats, setStats] = useState(null);
     const [patients, setPatients] = useState([]);
@@ -107,8 +117,8 @@ export default function MidwifeDashboardScreen({ navigation }) {
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: 'Failed to load data',
-                text2: err.response?.data?.message || 'Please try again',
+                text1: t('Failed to load data'),
+                text2: err.response?.data?.message || t('Please try again'),
                 position: 'top',
             });
         } finally {
@@ -136,11 +146,11 @@ export default function MidwifeDashboardScreen({ navigation }) {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.headerTitle}>👩‍⚕️ Midwife Portal</Text>
-                    <Text style={styles.headerSub}>Welcome, {authUser?.username || 'Midwife'}</Text>
+                    <Text style={styles.headerTitle}>👩‍⚕️ {t('Midwife Panel')}</Text>
+                    <Text style={styles.headerSub}>{t('Welcome')}, {authUser?.username || t('Midwife')}</Text>
                 </View>
                 <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                    <Text style={styles.logoutText}>Sign Out</Text>
+                    <Text style={styles.logoutText}>{t('Sign Out')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -152,8 +162,8 @@ export default function MidwifeDashboardScreen({ navigation }) {
                 {/* ── Stats ── */}
                 {stats && (
                     <View style={styles.statsRow}>
-                        <StatCard icon="🤰" label="Total Patients" value={stats.totalPatients} color="#10B981" />
-                        <StatCard icon="👩‍⚕️" label="Midwives" value={stats.totalMidwives} color="#0EA5E9" />
+                        <StatCard icon="🤰" label={t("Total Patients")} value={stats.totalPatients} color="#10B981" />
+                        <StatCard icon="👩‍⚕️" label={t("Midwives")} value={stats.totalMidwives} color="#0EA5E9" />
                     </View>
                 )}
 
@@ -161,7 +171,7 @@ export default function MidwifeDashboardScreen({ navigation }) {
                 <View style={styles.tipBanner}>
                     <Text style={styles.tipIcon}>💡</Text>
                     <Text style={styles.tipText}>
-                        Tap any patient card to view their profile details. Pull down to refresh the list.
+                        {t('Tap any patient card to view their profile details. Pull down to refresh the list.')}
                     </Text>
                 </View>
 
@@ -170,7 +180,7 @@ export default function MidwifeDashboardScreen({ navigation }) {
                     <Text style={styles.searchIcon}>🔍</Text>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search patients…"
+                        placeholder={t("Search Patients...")}
                         placeholderTextColor="#9CA3AF"
                         value={searchText}
                         onChangeText={setSearchText}
@@ -185,7 +195,7 @@ export default function MidwifeDashboardScreen({ navigation }) {
 
                 {/* ── Patient List ── */}
                 <Text style={styles.sectionTitle}>
-                    {filtered.length} Patient{filtered.length !== 1 ? 's' : ''}
+                    {filtered.length} {t('Patients')}
                 </Text>
 
                 {loading ? (
@@ -193,7 +203,7 @@ export default function MidwifeDashboardScreen({ navigation }) {
                 ) : filtered.length === 0 ? (
                     <View style={styles.emptyBox}>
                         <Text style={styles.emptyIcon}>😶</Text>
-                        <Text style={styles.emptyText}>No patients found</Text>
+                        <Text style={styles.emptyText}>{t('No patients found')}</Text>
                     </View>
                 ) : (
                     filtered.map(p => (

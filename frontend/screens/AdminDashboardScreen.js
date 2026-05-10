@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import api, { setAuthToken } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -27,7 +28,6 @@ const ROLE_ICONS = {
     doctor: '🩺',
 };
 
-// ─── Stat Card ────────────────────────────────
 function StatCard({ icon, label, value, color }) {
     return (
         <View style={[styles.statCard, { borderTopColor: color }]}>
@@ -40,6 +40,7 @@ function StatCard({ icon, label, value, color }) {
 
 // ─── User Row ─────────────────────────────────
 function UserRow({ user, onEdit, onDelete }) {
+    const { t } = useTranslation();
     const roleColor = ROLE_COLORS[user.role] || '#6B7280';
     const roleIcon = ROLE_ICONS[user.role] || '👤';
     const initials = user.username?.slice(0, 2).toUpperCase() || '??';
@@ -53,7 +54,7 @@ function UserRow({ user, onEdit, onDelete }) {
                 <Text style={styles.userEmail} numberOfLines={1}>{user.email}</Text>
                 <View style={[styles.roleBadge, { backgroundColor: roleColor + '22' }]}>
                     <Text style={[styles.roleBadgeText, { color: roleColor }]}>
-                        {roleIcon} {user.role}
+                        {roleIcon} {t(user.role)}
                     </Text>
                 </View>
             </View>
@@ -71,6 +72,7 @@ function UserRow({ user, onEdit, onDelete }) {
 
 // ─── Edit Modal ───────────────────────────────
 function EditModal({ visible, user, onClose, onSave }) {
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [role, setRole] = useState('patient');
 
@@ -82,18 +84,18 @@ function EditModal({ visible, user, onClose, onSave }) {
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
-                    <Text style={styles.modalTitle}>✏️ Edit User</Text>
+                    <Text style={styles.modalTitle}>✏️ {t('Edit User')}</Text>
 
-                    <Text style={styles.modalLabel}>Username</Text>
+                    <Text style={styles.modalLabel}>{t('Username')}</Text>
                     <TextInput
                         style={styles.modalInput}
                         value={username}
                         onChangeText={setUsername}
-                        placeholder="Username"
+                        placeholder={t("Username")}
                         placeholderTextColor="#9CA3AF"
                     />
 
-                    <Text style={styles.modalLabel}>Role</Text>
+                    <Text style={styles.modalLabel}>{t('Role')}</Text>
                     <View style={styles.roleGrid}>
                         {ROLES.map(r => (
                             <TouchableOpacity
@@ -102,7 +104,7 @@ function EditModal({ visible, user, onClose, onSave }) {
                                 onPress={() => setRole(r)}
                             >
                                 <Text style={[styles.roleChipText, role === r && { color: '#fff' }]}>
-                                    {ROLE_ICONS[r]} {r}
+                                    {ROLE_ICONS[r]} {t(r)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -110,10 +112,10 @@ function EditModal({ visible, user, onClose, onSave }) {
 
                     <View style={styles.modalBtns}>
                         <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                            <Text style={styles.cancelBtnText}>Cancel</Text>
+                            <Text style={styles.cancelBtnText}>{t('Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.saveBtn} onPress={() => onSave({ username, role })}>
-                            <Text style={styles.saveBtnText}>Save</Text>
+                            <Text style={styles.saveBtnText}>{t('Save')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -124,6 +126,7 @@ function EditModal({ visible, user, onClose, onSave }) {
 
 // ─── Create Modal ─────────────────────────────
 function CreateModal({ visible, onClose, onCreated }) {
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -132,18 +135,18 @@ function CreateModal({ visible, onClose, onCreated }) {
 
     const handleCreate = async () => {
         if (!username || !email || !password) {
-            Toast.show({ type: 'error', text1: 'All fields required', position: 'top' });
+            Toast.show({ type: 'error', text1: t('All fields required'), position: 'top' });
             return;
         }
         setLoading(true);
         try {
             await api.post('/admin/users', { username, email, password, role });
-            Toast.show({ type: 'success', text1: '✅ User created', position: 'top' });
+            Toast.show({ type: 'success', text1: `✅ ${t('User created')}`, position: 'top' });
             setUsername(''); setEmail(''); setPassword(''); setRole('patient');
             onCreated();
             onClose();
         } catch (err) {
-            Toast.show({ type: 'error', text1: err.response?.data?.message || 'Create failed', position: 'top' });
+            Toast.show({ type: 'error', text1: err.response?.data?.message || t('Registration Failed'), position: 'top' });
         } finally {
             setLoading(false);
         }
@@ -154,12 +157,12 @@ function CreateModal({ visible, onClose, onCreated }) {
             <View style={styles.modalOverlay}>
                 <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
                     <View style={styles.modalCard}>
-                        <Text style={styles.modalTitle}>➕ Create User</Text>
+                        <Text style={styles.modalTitle}>➕ {t('Create User')}</Text>
 
                         {[
-                            { label: 'Username', value: username, set: setUsername, placeholder: 'e.g. janedoe' },
-                            { label: 'Email', value: email, set: setEmail, placeholder: 'e.g. jane@example.com', keyboardType: 'email-address' },
-                            { label: 'Password', value: password, set: setPassword, placeholder: 'min 6 chars', secure: true },
+                            { label: t('Username'), value: username, set: setUsername, placeholder: t('e.g. janedoe') },
+                            { label: t('Email'), value: email, set: setEmail, placeholder: t('e.g. jane@example.com'), keyboardType: 'email-address' },
+                            { label: t('Password'), value: password, set: setPassword, placeholder: t('min 6 chars'), secure: true },
                         ].map(f => (
                             <View key={f.label}>
                                 <Text style={styles.modalLabel}>{f.label}</Text>
@@ -176,7 +179,7 @@ function CreateModal({ visible, onClose, onCreated }) {
                             </View>
                         ))}
 
-                        <Text style={styles.modalLabel}>Role</Text>
+                        <Text style={styles.modalLabel}>{t('Role')}</Text>
                         <View style={styles.roleGrid}>
                             {ROLES.map(r => (
                                 <TouchableOpacity
@@ -185,7 +188,7 @@ function CreateModal({ visible, onClose, onCreated }) {
                                     onPress={() => setRole(r)}
                                 >
                                     <Text style={[styles.roleChipText, role === r && { color: '#fff' }]}>
-                                        {ROLE_ICONS[r]} {r}
+                                        {ROLE_ICONS[r]} {t(r)}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
@@ -193,10 +196,10 @@ function CreateModal({ visible, onClose, onCreated }) {
 
                         <View style={styles.modalBtns}>
                             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                <Text style={styles.cancelBtnText}>{t('Cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.saveBtn} onPress={handleCreate} disabled={loading}>
-                                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Create</Text>}
+                                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>{t('Create')}</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -208,6 +211,7 @@ function CreateModal({ visible, onClose, onCreated }) {
 
 // ─── MAIN SCREEN ──────────────────────────────
 export default function AdminDashboardScreen({ navigation }) {
+    const { t } = useTranslation();
     const { user: authUser, token, logout } = useAuth();
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
@@ -230,7 +234,7 @@ export default function AdminDashboardScreen({ navigation }) {
             setStats(statsRes.data);
             setUsers(usersRes.data);
         } catch (err) {
-            Toast.show({ type: 'error', text1: 'Failed to load data', text2: err.response?.data?.message, position: 'top' });
+            Toast.show({ type: 'error', text1: t('Failed to load data'), text2: err.response?.data?.message, position: 'top' });
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -242,16 +246,16 @@ export default function AdminDashboardScreen({ navigation }) {
     const onRefresh = () => { setRefreshing(true); fetchData(); };
 
     const handleDelete = (user) => {
-        Alert.alert('Delete User', `Delete "${user.username}"?`, [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('Delete User'), `${t('Delete')} "${user.username}"?`, [
+            { text: t('Cancel'), style: 'cancel' },
             {
-                text: 'Delete', style: 'destructive', onPress: async () => {
+                text: t('Delete'), style: 'destructive', onPress: async () => {
                     try {
                         await api.delete(`/admin/users/${user._id}`);
-                        Toast.show({ type: 'success', text1: '🗑️ User deleted', position: 'top' });
+                        Toast.show({ type: 'success', text1: `🗑️ ${t('User deleted')}`, position: 'top' });
                         fetchData();
                     } catch (err) {
-                        Toast.show({ type: 'error', text1: 'Delete failed', position: 'top' });
+                        Toast.show({ type: 'error', text1: t('Delete failed'), position: 'top' });
                     }
                 },
             },
@@ -261,11 +265,11 @@ export default function AdminDashboardScreen({ navigation }) {
     const handleSaveEdit = async (updates) => {
         try {
             await api.patch(`/admin/users/${editTarget._id}`, updates);
-            Toast.show({ type: 'success', text1: '✅ User updated', position: 'top' });
+            Toast.show({ type: 'success', text1: `✅ ${t('User updated')}`, position: 'top' });
             setEditTarget(null);
             fetchData();
         } catch (err) {
-            Toast.show({ type: 'error', text1: 'Update failed', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Update failed'), position: 'top' });
         }
     };
 
@@ -282,10 +286,10 @@ export default function AdminDashboardScreen({ navigation }) {
         );
 
     const filterTabs = [
-        { key: 'all', label: 'All', icon: '👥' },
-        { key: 'patient', label: 'Patients', icon: '🤰' },
-        { key: 'midwife', label: 'Midwives', icon: '👩‍⚕️' },
-        { key: 'admin', label: 'Admins', icon: '🛡️' },
+        { key: 'all', label: t('All'), icon: '👥' },
+        { key: 'patient', label: t('Patients'), icon: '🤰' },
+        { key: 'midwife', label: t('Midwives'), icon: '👩‍⚕️' },
+        { key: 'admin', label: t('Admins'), icon: '🛡️' },
     ];
 
     return (
@@ -293,11 +297,11 @@ export default function AdminDashboardScreen({ navigation }) {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.headerTitle}>🛡️ Admin Panel</Text>
-                    <Text style={styles.headerSub}>Welcome, {authUser?.username || 'Admin'}</Text>
+                    <Text style={styles.headerTitle}>🛡️ {t('Admin Panel')}</Text>
+                    <Text style={styles.headerSub}>{t('Welcome')}, {authUser?.username || t('Admin')}</Text>
                 </View>
                 <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                    <Text style={styles.logoutText}>Sign Out</Text>
+                    <Text style={styles.logoutText}>{t('Sign Out')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -309,16 +313,16 @@ export default function AdminDashboardScreen({ navigation }) {
                 {/* ── Stats ── */}
                 {stats && (
                     <View style={styles.statsRow}>
-                        <StatCard icon="👥" label="Total Users" value={stats.totalUsers} color="#7C3AED" />
-                        <StatCard icon="🤰" label="Patients" value={stats.totalPatients} color="#10B981" />
-                        <StatCard icon="👩‍⚕️" label="Midwives" value={stats.totalMidwives} color="#0EA5E9" />
-                        <StatCard icon="🛡️" label="Admins" value={stats.totalAdmins} color="#F59E0B" />
+                        <StatCard icon="👥" label={t("Total Users")} value={stats.totalUsers} color="#7C3AED" />
+                        <StatCard icon="🤰" label={t("Patients")} value={stats.totalPatients} color="#10B981" />
+                        <StatCard icon="👩‍⚕️" label={t("Midwives")} value={stats.totalMidwives} color="#0EA5E9" />
+                        <StatCard icon="🛡️" label={t("Admins")} value={stats.totalAdmins} color="#F59E0B" />
                     </View>
                 )}
 
                 {/* ── Create Button ── */}
                 <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)}>
-                    <Text style={styles.createBtnText}>➕  Create New User</Text>
+                    <Text style={styles.createBtnText}>➕  {t('Create New User')}</Text>
                 </TouchableOpacity>
 
                 {/* ── Search ── */}
@@ -326,7 +330,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     <Text style={styles.searchIcon}>🔍</Text>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Search by name or email…"
+                        placeholder={t("Search by name or email…")}
                         placeholderTextColor="#9CA3AF"
                         value={searchText}
                         onChangeText={setSearchText}
@@ -351,7 +355,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
                 {/* ── User List ── */}
                 <Text style={styles.sectionTitle}>
-                    {filteredUsers.length} {filter === 'all' ? 'Users' : filter.charAt(0).toUpperCase() + filter.slice(1) + 's'}
+                    {filteredUsers.length} {filter === 'all' ? t('Users') : t(filter) + 's'}
                 </Text>
 
                 {loading ? (
@@ -359,7 +363,7 @@ export default function AdminDashboardScreen({ navigation }) {
                 ) : filteredUsers.length === 0 ? (
                     <View style={styles.emptyBox}>
                         <Text style={styles.emptyIcon}>😶</Text>
-                        <Text style={styles.emptyText}>No users found</Text>
+                        <Text style={styles.emptyText}>{t('No users found')}</Text>
                     </View>
                 ) : (
                     filteredUsers.map(u => (

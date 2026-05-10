@@ -21,56 +21,56 @@ const { width } = Dimensions.get('window');
 // MOCK DATA
 // ─────────────────────────────────────────────
 const mockUser = {
-    name: 'Sarah Johnson',
-    role: 'Patient',
+    name: 'සාරා ජොන්සන්',
+    role: 'රෝගියා',
     avatar: null,
-    lastVisit: '28 Feb 2026',
+    lastVisit: '2026 පෙබරවාරි 28',
 };
 
-const mockStats = [
-    { label: 'Screenings Done', value: 12, icon: '📋', color: '#7C3AED' },
-    { label: 'Risk Score', value: '34%', icon: '📊', color: '#0EA5E9' },
-    { label: 'Sessions Left', value: 5, icon: '🕐', color: '#10B981' },
-    { label: 'Mood Streak', value: '7 days', icon: '🌟', color: '#F59E0B' },
+const mockStats = (t) => [
+    { label: t('Screenings Done'), value: 12, icon: '📋', color: '#7C3AED' },
+    { label: t('Risk Score'), value: '34%', icon: '📊', color: '#0EA5E9' },
+    { label: t('Sessions Left'), value: 5, icon: '🕐', color: '#10B981' },
+    { label: t('Mood Streak'), value: '7 ' + t('days'), icon: '🌟', color: '#F59E0B' },
 ];
 
-const barChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+const barChartData = (t) => ({
+    labels: [t('Jan'), t('Feb'), t('Mar'), t('Apr'), t('May'), t('Jun')],
     datasets: [
         {
             data: [30, 45, 28, 60, 40, 55],
         },
     ],
-};
+});
 
-const pieChartData = [
-    { name: 'Mild', population: 35, color: '#10B981', legendFontColor: '#374151', legendFontSize: 13 },
-    { name: 'Moderate', population: 40, color: '#F59E0B', legendFontColor: '#374151', legendFontSize: 13 },
-    { name: 'Severe', population: 15, color: '#EF4444', legendFontColor: '#374151', legendFontSize: 13 },
-    { name: 'None', population: 10, color: '#7C3AED', legendFontColor: '#374151', legendFontSize: 13 },
+const pieChartData = (t) => [
+    { name: t('Low'), population: 35, color: '#10B981', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: t('Medium'), population: 40, color: '#F59E0B', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: t('High'), population: 15, color: '#EF4444', legendFontColor: '#374151', legendFontSize: 13 },
+    { name: t('None'), population: 10, color: '#7C3AED', legendFontColor: '#374151', legendFontSize: 13 },
 ];
 
-const progressData = [
-    { label: 'Anxiety Level', progress: 0.62, color: '#EF4444' },
-    { label: 'Sleep Quality', progress: 0.75, color: '#10B981' },
-    { label: 'Social Support', progress: 0.48, color: '#0EA5E9' },
-    { label: 'Emotional Balance', progress: 0.83, color: '#7C3AED' },
+const progressData = (t) => [
+    { label: t('Anxiety Level'), progress: 0.62, color: '#EF4444' },
+    { label: t('Sleep Quality'), progress: 0.75, color: '#10B981' },
+    { label: t('Social Support'), progress: 0.48, color: '#0EA5E9' },
+    { label: t('Emotional Balance'), progress: 0.83, color: '#7C3AED' },
 ];
 
-const recentActivities = [
-    { id: 1, title: 'EPDS Screening Completed', time: '2 hours ago', icon: '✅', color: '#10B981' },
-    { id: 2, title: 'Therapy Session Scheduled', time: 'Yesterday', icon: '📅', color: '#0EA5E9' },
-    { id: 3, title: 'Mood Log Updated', time: '2 days ago', icon: '😊', color: '#F59E0B' },
-    { id: 4, title: 'Doctor Note Added', time: '3 days ago', icon: '📝', color: '#7C3AED' },
+const recentActivities = (t) => [
+    { id: 1, title: t('EPDS Screening Completed'), time: t('2 hours ago'), icon: '✅', color: '#10B981' },
+    { id: 2, title: t('Therapy Session Scheduled'), time: t('Yesterday'), icon: '📅', color: '#0EA5E9' },
+    { id: 3, title: t('Mood Log Updated'), time: t('2 days ago'), icon: '😊', color: '#F59E0B' },
+    { id: 4, title: t('Doctor Note Added'), time: t('3 days ago'), icon: '📝', color: '#7C3AED' },
 ];
 
-const navItems = [
-    { key: 'home', label: 'Dashboard', icon: '🏠' },
-    { key: 'screening', label: 'Screening', icon: '📋' },
-    { key: 'diary', label: 'My Diary', icon: '📔' },
-    { key: 'plan', label: 'My Plans', icon: '📅' },
-    { key: 'profile', label: 'Profile', icon: '👤' },
-    { key: 'settings', label: 'Settings', icon: '⚙️' },
+const navItems = (t) => [
+    { key: 'home', label: t('Dashboard'), icon: '🏠' },
+    { key: 'screening', label: t('Screening'), icon: '📋' },
+    { key: 'diary', label: t('My Diary'), icon: '📔' },
+    { key: 'plan', label: t('My Plans'), icon: '📅' },
+    { key: 'profile', label: t('Profile'), icon: '👤' },
+    { key: 'settings', label: t('Settings'), icon: '⚙️' },
 ];
 
 // ─────────────────────────────────────────────
@@ -108,6 +108,7 @@ function StatCard({ icon, label, value, color }) {
 // SIDEBAR COMPONENT
 // ─────────────────────────────────────────────
 function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
+    const { t } = useTranslation();
     return (
         <Modal
             transparent
@@ -136,7 +137,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
 
                     {/* Nav Items */}
                     <ScrollView style={styles.sidebarNav}>
-                        {navItems.map((item) => (
+                        {navItems(t).map((item) => (
                             <TouchableOpacity
                                 key={item.key}
                                 style={[
@@ -167,7 +168,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
                     {/* Logout */}
                     <TouchableOpacity style={styles.sidebarLogout} onPress={onLogout}>
                         <Text style={styles.sidebarLogoutIcon}>🚪</Text>
-                        <Text style={styles.sidebarLogoutText}>Sign Out</Text>
+                        <Text style={styles.sidebarLogoutText}>{t('Sign Out')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -179,7 +180,7 @@ function Sidebar({ visible, activeTab, onTabPress, onClose, onLogout }) {
 // HEADER COMPONENT
 // ─────────────────────────────────────────────
 function Header({ onMenuPress, onNotifPress }) {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     return (
         <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuBtn}>
@@ -190,16 +191,10 @@ function Header({ onMenuPress, onNotifPress }) {
 
             <View style={styles.headerCenter}>
                 <Text style={styles.headerLogo}>🌸</Text>
-                <Text style={styles.headerTitle}>PeriCare</Text>
+                <Text style={styles.headerTitle}>{t('PeriCare')}</Text>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ marginRight: 15 }}>
-                    <Text style={{ fontWeight: '700', fontSize: 13, color: '#7C3AED', backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                        {i18n.language === 'en' ? 'සිං' : 'EN'}
-                    </Text>
-                </TouchableOpacity>
-
                 <TouchableOpacity onPress={onNotifPress} style={styles.notifBtn}>
                     <Text style={styles.notifIcon}>🔔</Text>
                     <View style={styles.notifBadge}>
@@ -215,7 +210,8 @@ function Header({ onMenuPress, onNotifPress }) {
 // FOOTER COMPONENT
 // ─────────────────────────────────────────────
 function Footer({ activeTab, onTabPress }) {
-    const footerItems = navItems.slice(0, 5);
+    const { t } = useTranslation();
+    const footerItems = navItems(t).slice(0, 5);
     return (
         <View style={styles.footer}>
             {footerItems.map((item) => (
@@ -245,15 +241,15 @@ function Footer({ activeTab, onTabPress }) {
 // ─────────────────────────────────────────────
 export default function DashboardScreen({ navigation }) {
     const { t } = useTranslation();
-    const [sidebarVisible, setSidebarVisible] = useState(false);
     const [activeTab, setActiveTab] = useState('home');
+    const [sidebarVisible, setSidebarVisible] = useState(false);
 
     const handleLogout = () => {
         setSidebarVisible(false);
         Toast.show({
             type: 'success',
-            text1: 'Signed Out',
-            text2: 'You have been signed out successfully.',
+            text1: t('Signed Out'),
+            text2: t('You have been signed out successfully.'),
             position: 'top',
         });
         setTimeout(() => {
@@ -264,8 +260,8 @@ export default function DashboardScreen({ navigation }) {
     const handleNotifPress = () => {
         Toast.show({
             type: 'info',
-            text1: '🔔 Notifications',
-            text2: 'You have 3 new notifications.',
+            text1: `🔔 ${t('Notifications')}`,
+            text2: t('You have 3 new notifications.'),
             position: 'top',
         });
     };
@@ -279,8 +275,8 @@ export default function DashboardScreen({ navigation }) {
         } else if (tab !== 'home') {
             Toast.show({
                 type: 'info',
-                text1: navItems.find(n => n.key === tab)?.label || tab,
-                text2: 'This section is coming soon!',
+                text1: navItems(t).find(n => n.key === tab)?.label || tab,
+                text2: t('This section is coming soon!'),
                 position: 'bottom',
             });
         }
@@ -320,76 +316,73 @@ export default function DashboardScreen({ navigation }) {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Greeting Banner */}
-                <View style={styles.greetingBanner}>
-                    <View style={styles.greetingTextContainer}>
-                        <Text style={styles.greetingHello}>{t('Hello')}, {mockUser.name.split(' ')[0]} 👋</Text>
-                        <Text style={styles.greetingSubtitle}>{t("Here's your health overview")}</Text>
-                        <Text style={styles.greetingDate}>{t('Last visit')}: {mockUser.lastVisit}</Text>
-                    </View>
-                    <View style={styles.greetingAvatarLarge}>
-                        <Text style={styles.greetingAvatarText}>SJ</Text>
-                    </View>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>{t('Overview')}</Text>
+                    <Text style={styles.lastVisit}>{t('Last visit')}: {mockUser.lastVisit}</Text>
                 </View>
 
-                {/* Stat Cards */}
-                <Text style={styles.sectionTitle}>{t('Overview')}</Text>
                 <View style={styles.statsGrid}>
-                    {mockStats.map((stat, i) => (
-                        <StatCard key={i} {...stat} label={t(stat.label)} />
+                    {mockStats(t).map((stat, i) => (
+                        <StatCard key={i} {...stat} />
                     ))}
                 </View>
 
-                {/* Bar Chart */}
-                <Text style={styles.sectionTitle}>{t('Monthly Screening Activity')}</Text>
-                <View style={styles.chartCard}>
+                {/* ── Progress Chart ── */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>{t('Monthly Progress')}</Text>
                     <BarChart
-                        data={barChartData}
-                        width={width - 48}
-                        height={200}
+                        data={barChartData(t)}
+                        width={width - 64}
+                        height={180}
+                        yAxisLabel=""
                         chartConfig={chartConfig}
+                        verticalLabelRotation={0}
                         style={styles.chart}
-                        showValuesOnTopOfBars
-                        fromZero
                     />
                 </View>
 
-                {/* Pie Chart */}
-                <Text style={styles.sectionTitle}>{t('Depression Risk Breakdown')}</Text>
-                <View style={styles.chartCard}>
-                    <PieChart
-                        data={pieChartData}
-                        width={width - 48}
-                        height={200}
-                        chartConfig={chartConfig}
-                        accessor="population"
-                        backgroundColor="transparent"
-                        paddingLeft="15"
-                        absolute={false}
-                    />
+                {/* ── Health Indicators ── */}
+                <View style={styles.indicatorRow}>
+                    <View style={[styles.card, { flex: 1, marginBottom: 0 }]}>
+                        <Text style={styles.cardTitle}>{t('Health Scores')}</Text>
+                        {progressData(t).map((p, i) => (
+                            <ProgressBar key={i} {...p} />
+                        ))}
+                    </View>
+                    
+                    <View style={[styles.card, { flex: 0.9, marginBottom: 0, marginLeft: 12 }]}>
+                        <Text style={styles.cardTitle}>{t('Risk Level')}</Text>
+                        <PieChart
+                            data={pieChartData(t)}
+                            width={width * 0.4}
+                            height={160}
+                            chartConfig={chartConfig}
+                            accessor="population"
+                            backgroundColor="transparent"
+                            paddingLeft="10"
+                            absolute
+                        />
+                    </View>
                 </View>
 
-                {/* Progress Bars */}
-                <Text style={styles.sectionTitle}>{t('Wellness Indicators')}</Text>
-                <View style={styles.progressCard}>
-                    {progressData.map((item, i) => (
-                        <ProgressBar key={i} {...item} />
-                    ))}
+                {/* ── Recent Activity ── */}
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>{t('Recent Activities')}</Text>
+                    <TouchableOpacity>
+                        <Text style={styles.viewAllText}>{t('View All')}</Text>
+                    </TouchableOpacity>
                 </View>
 
-                {/* Recent Activity */}
-                <Text style={styles.sectionTitle}>{t('Recent Activity')}</Text>
-                <View style={styles.activityCard}>
-                    {recentActivities.map((item) => (
-                        <View key={item.id} style={styles.activityRow}>
-                            <View style={[styles.activityIconBox, { backgroundColor: item.color + '22' }]}>
-                                <Text style={styles.activityIcon}>{item.icon}</Text>
+                <View style={styles.activityList}>
+                    {recentActivities(t).map((item) => (
+                        <View key={item.id} style={styles.activityItem}>
+                            <View style={[styles.activityIcon, { backgroundColor: item.color + '22' }]}>
+                                <Text style={{ fontSize: 16 }}>{item.icon}</Text>
                             </View>
                             <View style={styles.activityInfo}>
                                 <Text style={styles.activityTitle}>{item.title}</Text>
                                 <Text style={styles.activityTime}>{item.time}</Text>
                             </View>
-                            <View style={[styles.activityDot, { backgroundColor: item.color }]} />
                         </View>
                     ))}
                 </View>
@@ -416,7 +409,7 @@ export default function DashboardScreen({ navigation }) {
                     <TouchableOpacity
                         style={[styles.quickActionBtn, { backgroundColor: '#10B981' }]}
                         onPress={() =>
-                            Toast.show({ type: 'success', text1: '😊 Mood', text2: 'Mood log updated!', position: 'top' })
+                            Toast.show({ type: 'success', text1: `😊 ${t('Mood')}`, text2: t('Mood log updated!'), position: 'top' })
                         }
                     >
                         <Text style={styles.quickActionIcon}>😊</Text>
@@ -428,7 +421,7 @@ export default function DashboardScreen({ navigation }) {
                         onPress={() => navigation.navigate('Exercise')}
                     >
                         <Text style={styles.quickActionIcon}>🏃‍♀️</Text>
-                        <Text style={styles.quickActionText}>Postpartum Exercise</Text>
+                        <Text style={styles.quickActionText}>{t('Postpartum Exercise')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -700,6 +693,22 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         marginTop: 4,
     },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+        marginTop: 4,
+    },
+    lastVisit: {
+        fontSize: 11,
+        color: '#6B7280',
+    },
+    viewAllText: {
+        fontSize: 12,
+        color: PURPLE,
+        fontWeight: '600',
+    },
 
     // ── Stats ──
     statsGrid: {
@@ -735,8 +744,8 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
 
-    // ── Chart Card ──
-    chartCard: {
+    // ── Chart & Indicator Cards ──
+    card: {
         backgroundColor: WHITE,
         borderRadius: 16,
         padding: 16,
@@ -746,10 +755,40 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.07,
         shadowRadius: 4,
-        alignItems: 'center',
+    },
+    cardTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#374151',
+        marginBottom: 12,
+    },
+    indicatorRow: {
+        flexDirection: 'row',
+        marginBottom: 20,
     },
     chart: {
         borderRadius: 12,
+        marginVertical: 8,
+    },
+
+    // ── Activity List ──
+    activityList: {
+        backgroundColor: WHITE,
+        borderRadius: 16,
+        padding: 8,
+        marginBottom: 20,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.07,
+        shadowRadius: 4,
+    },
+    activityItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
     },
 
     // ── Progress ──

@@ -28,8 +28,8 @@ export default function LoginScreen({ navigation }) {
         if (!email || !password) {
             Toast.show({
                 type: 'error',
-                text1: 'Missing Fields',
-                text2: 'Please fill in your email and password.',
+                text1: t('Missing Fields'),
+                text2: t('Please fill in your email and password.'),
                 position: 'top',
             });
             return;
@@ -46,8 +46,8 @@ export default function LoginScreen({ navigation }) {
 
             Toast.show({
                 type: 'success',
-                text1: '✅ Welcome Back!',
-                text2: `Signed in as ${userData?.username || email}`,
+                text1: `✅ ${t('Welcome Back')}`,
+                text2: `${t('Signed in as')} ${userData?.username || email}`,
                 position: 'top',
             });
 
@@ -65,10 +65,10 @@ export default function LoginScreen({ navigation }) {
         } catch (error) {
             console.error(error);
             const message =
-                error.response?.data?.message || 'Login failed. Please try again.';
+                error.response?.data?.message || t('Login failed. Please try again.');
             Toast.show({
                 type: 'error',
-                text1: '❌ Sign In Failed',
+                text1: `❌ ${t('Sign In Failed')}`,
                 text2: message,
                 position: 'top',
             });
@@ -87,11 +87,7 @@ export default function LoginScreen({ navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={{ position: 'absolute', top: 30, right: 20, zIndex: 10 }}>
-                        <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#EDE9FE', borderRadius: 16 }}>
-                            <Text style={{ fontWeight: 'bold', color: '#7C3AED', fontSize: 14 }}>{i18n.language === 'en' ? 'සිං' : 'EN'}</Text>
-                        </TouchableOpacity>
-                    </View>
+
 
                     {/* Decorative top banner */}
                     <View style={styles.topBanner}>
@@ -112,7 +108,7 @@ export default function LoginScreen({ navigation }) {
                             <Text style={styles.label}>📧 {t('Email')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter your email"
+                                placeholder={t('Enter your email')}
                                 placeholderTextColor="#9CA3AF"
                                 value={email}
                                 onChangeText={setEmail}
@@ -128,7 +124,7 @@ export default function LoginScreen({ navigation }) {
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
-                                    placeholder="Enter your password"
+                                    placeholder={t('Enter your password')}
                                     placeholderTextColor="#9CA3AF"
                                     value={password}
                                     onChangeText={setPassword}
@@ -157,7 +153,7 @@ export default function LoginScreen({ navigation }) {
                                 })
                             }
                         >
-                            <Text style={styles.forgotText}>Forgot Password?</Text>
+                            <Text style={styles.forgotText}>{t('Forgot Password?')}</Text>
                         </TouchableOpacity>
 
                         {/* Sign In Button */}

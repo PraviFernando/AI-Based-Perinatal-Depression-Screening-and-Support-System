@@ -1,6 +1,7 @@
 const Exercise = require('../models/Exercise');
 const ExerciseRecord = require('../models/ExerciseRecord');
 const PostpartumHealthData = require('../models/PostpartumHealthData');
+const MLPredictionService = require('../services/mlPredictionService');
 
 // Clinical Safety Rules
 const applySafetyRules = (healthData) => {
@@ -291,7 +292,7 @@ const submitHealthData = async (req, res, next) => {
         
         // Get PPD risk level from screening module (mock for now)
         // In production, fetch from screening module API
-        const ppdRiskLevel = req.body.ppdRiskLevel || 'low';
+        let ppdRiskLevel = req.body.ppdRiskLevel || 'low';
         
         // Create health data object
         const healthData = {
@@ -319,18 +320,60 @@ const submitHealthData = async (req, res, next) => {
         console.log('Date:', date);
         console.log('Weeks:', weeksAfterDelivery, 'Delivery:', deliveryType);
         
-        // Apply safety rules
-        const safety = applySafetyRules(healthData);
+        // Get ML-based risk prediction
+        let mlRiskLevel = ppdRiskLevel;
+        let mlConfidence = null;
+        let mlRecommendedExercises = [];
+        try {
+            const mlPrediction = await MLPredictionService.predictRisk({
+                weeksAfterDelivery: weeksAfterDelivery,
+                deliveryType: deliveryType,
+                pelvicPain: pelvicPain || false,
+                backPain: backPain || false,
+                abdominalPain: abdominalPain || false,
+                bleedingComplications: bleedingComplications || false,
+                doctorRestrictions: doctorRestrictions || false,
+                fatigueLevel: fatigueLevel || 'low',
+                mobilityLevel: mobilityLevel || 'normal',
+                muscleWeakness: muscleWeakness || false,
+                willingnessToExercise: willingnessToExercise || 'medium',
+                ppdRiskLevel: ppdRiskLevel
+            });
+            
+            if (mlPrediction.success) {
+                mlRiskLevel = mlPrediction.riskLevel;
+                mlConfidence = mlPrediction.confidenceScores;
+                mlRecommendedExercises = mlPrediction.recommendedExercises || [];
+                console.log(`ML Prediction: ${mlRiskLevel} (Confidence: ${JSON.stringify(mlConfidence)})`);
+                // Update healthData with ML predicted risk level
+                healthData.ppdRiskLevel = mlRiskLevel;
+            }
+        } catch (err) {
+            console.log('ML prediction failed, using rule-based:', err.message);
+        }
+        
+        // Apply safety rules with updated risk level
+        const safety = applySafetyRules({ ...healthData, ppdRiskLevel: mlRiskLevel });
         healthData.safetyStatus = safety.safetyStatus;
         healthData.safetyMessage = safety.safetyMessage;
         healthData.safetyMessageSi = safety.safetyMessageSi;
         
         console.log('Safety Status:', safety.safetyStatus);
+        console.log('Risk Level Used:', mlRiskLevel);
         
         // Generate recommendations if not blocked
         let recommendations = [];
         if (safety.safetyStatus !== 'blocked') {
-            recommendations = await generateRecommendations({ ...healthData, safetyStatus: safety.safetyStatus });
+            if (mlRecommendedExercises && mlRecommendedExercises.length > 0) {
+                recommendations = mlRecommendedExercises.map(ex => ({
+                    type: 'ml_recommended',
+                    duration: 10,
+                    customName: ex.name,
+                    videoUrl: ex.video_url || ex.videoUrl
+                }));
+            } else {
+                recommendations = await generateRecommendations({ ...healthData, safetyStatus: safety.safetyStatus, ppdRiskLevel: mlRiskLevel });
+            }
             healthData.recommendedExercises = recommendations;
         }
         
@@ -355,12 +398,59 @@ const submitHealthData = async (req, res, next) => {
                         exerciseDetails: exercise
                     });
                 }
+            } else if (rec.type === 'ml_recommended' || rec.customName) {
+                const sinhalaTranslations = {
+                    'Deep Breathing': 'ගැඹුරු හුස්ම ගැනීම',
+                    'Pelvic Floor Exercise (Kegel)': 'ශ්‍රෝණි තට්ටු ව්‍යායාම',
+                    'Gentle Neck Stretch': 'මෘදු බෙල්ල දිගු කිරීම',
+                    'Gentle Walking': 'මෘදු ඇවිදීම',
+                    'Shoulder Rolls': 'උරහිස් කරකැවීම',
+                    'Side Leg Raises': 'පැති කකුල් එසවීම',
+                    'Toe Taps': 'පාද තට්ටු කිරීම',
+                    'Seated March': 'වාඩි වී පාගමන',
+                    'Supported Sitting Exercise': 'සහාය දක්වන වාඩි වීමේ ව්‍යායාමය',
+                    'Heel Slides': 'විලුඹ ලිස්සා යාම',
+                    'Hand Stretch': 'අත් දිගු කිරීම',
+                    'Walking': 'ඇවිදීම',
+                    'Gentle Breathing': 'මෘදු හුස්ම ගැනීම',
+                    'Ankle Pumps': 'වළලුකර පොම්ප කිරීම',
+                    'Pelvic Floor Activation': 'ශ්‍රෝණි තට්ටුව සක්‍රිය කිරීම',
+                    'Bridge Exercise': 'පාලම් ව්‍යායාමය',
+                    'Gentle Ankle Pumps': 'මෘදු වළලුකර පොම්ප කිරීම',
+                    'Bed Mobility Exercise': 'ඇඳේ චලනය වීමේ ව්‍යායාමය',
+                    'Guided Relaxation': 'මඟ පෙන්වන විවේකය',
+                    'Wrist Mobility': 'මැණික්කටුව චලනය',
+                    'Bird Dog': 'කුරුළු බල්ලා ව්‍යායාමය',
+                    'Kegel Exercise': 'කේගල් ව්‍යායාමය',
+                    'Pelvic Tilt': 'ශ්‍රෝණි ඇලය',
+                    'Neck Stretch': 'බෙල්ල දිගු කිරීම',
+                    'Cat Cow Stretch': 'බළලා-එළදෙන දිගු කිරීම',
+                    'Arm Circles': 'අත් කව කිරීම',
+                    'Modified Squats': 'වෙනස් කළ ස්කොට්ස්',
+                    'Wall Pushups': 'බිත්ති තල්ලු කිරීම්'
+                };
+                
+                const englishName = rec.customName || rec.name;
+                const sinhalaName = sinhalaTranslations[englishName] || englishName;
+
+                populatedRecommendations.push({
+                    ...rec,
+                    exerciseDetails: {
+                        name: englishName,
+                        nameSi: sinhalaName,
+                        videoUrl: rec.videoUrl,
+                        duration: rec.duration || 10,
+                        description: 'Recommended specifically for your health profile.',
+                        descriptionSi: 'ඔබේ සෞඛ්‍ය පැතිකඩ සඳහා විශේෂයෙන් නිර්දේශ කර ඇත.',
+                        type: 'ml_recommended'
+                    }
+                });
             } else {
                 populatedRecommendations.push(rec);
             }
         }
 
-        // Return response
+        // Return response with ML info
         res.json({
             success: true,
             safetyStatus: safety.safetyStatus,
@@ -368,7 +458,12 @@ const submitHealthData = async (req, res, next) => {
             safetyMessageSi: safety.safetyMessageSi,
             warnings: safety.warnings || [],
             recommendedExercises: populatedRecommendations,
-            healthDataId: savedData._id
+            healthDataId: savedData._id,
+            mlPrediction: {
+                riskLevel: mlRiskLevel,
+                confidence: mlConfidence,
+                modelUsed: mlConfidence ? 'random_forest' : 'rule_based'
+            }
         });
         
     } catch (err) {
@@ -422,6 +517,54 @@ const getRecommendations = async (req, res, next) => {
                         exerciseDetails: exercise
                     });
                 }
+            } else if (rec.type === 'ml_recommended' || rec.customName) {
+                const sinhalaTranslations = {
+                    'Deep Breathing': 'ගැඹුරු හුස්ම ගැනීම',
+                    'Pelvic Floor Exercise (Kegel)': 'ශ්‍රෝණි තට්ටු ව්‍යායාම',
+                    'Gentle Neck Stretch': 'මෘදු බෙල්ල දිගු කිරීම',
+                    'Gentle Walking': 'මෘදු ඇවිදීම',
+                    'Shoulder Rolls': 'උරහිස් කරකැවීම',
+                    'Side Leg Raises': 'පැති කකුල් එසවීම',
+                    'Toe Taps': 'පාද තට්ටු කිරීම',
+                    'Seated March': 'වාඩි වී පාගමන',
+                    'Supported Sitting Exercise': 'සහාය දක්වන වාඩි වීමේ ව්‍යායාමය',
+                    'Heel Slides': 'විලුඹ ලිස්සා යාම',
+                    'Hand Stretch': 'අත් දිගු කිරීම',
+                    'Walking': 'ඇවිදීම',
+                    'Gentle Breathing': 'මෘදු හුස්ම ගැනීම',
+                    'Ankle Pumps': 'වළලුකර පොම්ප කිරීම',
+                    'Pelvic Floor Activation': 'ශ්‍රෝණි තට්ටුව සක්‍රිය කිරීම',
+                    'Bridge Exercise': 'පාලම් ව්‍යායාමය',
+                    'Gentle Ankle Pumps': 'මෘදු වළලුකර පොම්ප කිරීම',
+                    'Bed Mobility Exercise': 'ඇඳේ චලනය වීමේ ව්‍යායාමය',
+                    'Guided Relaxation': 'මඟ පෙන්වන විවේකය',
+                    'Wrist Mobility': 'මැණික්කටුව චලනය',
+                    'Bird Dog': 'කුරුළු බල්ලා ව්‍යායාමය',
+                    'Kegel Exercise': 'කේගල් ව්‍යායාමය',
+                    'Pelvic Tilt': 'ශ්‍රෝණි ඇලය',
+                    'Neck Stretch': 'බෙල්ල දිගු කිරීම',
+                    'Cat Cow Stretch': 'බළලා-එළදෙන දිගු කිරීම',
+                    'Arm Circles': 'අත් කව කිරීම',
+                    'Modified Squats': 'වෙනස් කළ ස්කොට්ස්',
+                    'Wall Pushups': 'බිත්ති තල්ලු කිරීම්'
+                };
+                
+                const recObj = rec.toObject ? rec.toObject() : rec;
+                const englishName = recObj.customName || recObj.name;
+                const sinhalaName = sinhalaTranslations[englishName] || englishName;
+
+                recommendations.push({
+                    ...recObj,
+                    exerciseDetails: {
+                        name: englishName,
+                        nameSi: sinhalaName,
+                        videoUrl: recObj.videoUrl,
+                        duration: recObj.duration || 10,
+                        description: 'Recommended specifically for your health profile.',
+                        descriptionSi: 'ඔබේ සෞඛ්‍ය පැතිකඩ සඳහා විශේෂයෙන් නිර්දේශ කර ඇත.',
+                        type: 'ml_recommended'
+                    }
+                });
             } else {
                 recommendations.push(rec);
             }

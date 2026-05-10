@@ -29,8 +29,8 @@ export default function SignupScreen({ navigation }) {
         if (!username || !email || !password || !confirmPassword) {
             Toast.show({
                 type: 'error',
-                text1: 'Missing Fields',
-                text2: 'Please fill in all fields.',
+                text1: t('Missing Fields'),
+                text2: t('Please fill in all fields.'),
                 position: 'top',
             });
             return;
@@ -39,8 +39,8 @@ export default function SignupScreen({ navigation }) {
         if (password !== confirmPassword) {
             Toast.show({
                 type: 'error',
-                text1: 'Password Mismatch',
-                text2: 'Passwords do not match. Please try again.',
+                text1: t('Password Mismatch'),
+                text2: t('Passwords do not match. Please try again.'),
                 position: 'top',
             });
             return;
@@ -49,8 +49,8 @@ export default function SignupScreen({ navigation }) {
         if (password.length < 6) {
             Toast.show({
                 type: 'error',
-                text1: 'Weak Password',
-                text2: 'Password must be at least 6 characters.',
+                text1: t('Weak Password'),
+                text2: t('Password must be at least 6 characters.'),
                 position: 'top',
             });
             return;
@@ -66,8 +66,8 @@ export default function SignupScreen({ navigation }) {
 
             Toast.show({
                 type: 'success',
-                text1: '🎉 Account Created!',
-                text2: 'Your account has been registered. Please sign in.',
+                text1: `🎉 ${t('Account Created!')}`,
+                text2: t('Your account has been registered. Please sign in.'),
                 position: 'top',
                 visibilityTime: 2500,
             });
@@ -78,10 +78,10 @@ export default function SignupScreen({ navigation }) {
         } catch (error) {
             console.error(error);
             const message =
-                error.response?.data?.message || 'Signup failed. Please try again.';
+                error.response?.data?.message || t('Signup failed. Please try again.');
             Toast.show({
                 type: 'error',
-                text1: '❌ Registration Failed',
+                text1: `❌ ${t('Registration Failed')}`,
                 text2: message,
                 position: 'top',
             });
@@ -100,11 +100,7 @@ export default function SignupScreen({ navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={{ position: 'absolute', top: 30, right: 20, zIndex: 10 }}>
-                        <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#EDE9FE', borderRadius: 16 }}>
-                            <Text style={{ fontWeight: 'bold', color: '#7C3AED', fontSize: 14 }}>{i18n.language === 'en' ? 'සිං' : 'EN'}</Text>
-                        </TouchableOpacity>
-                    </View>
+
 
                     {/* Top Banner */}
                     <View style={styles.topBanner}>
@@ -125,7 +121,7 @@ export default function SignupScreen({ navigation }) {
                             <Text style={styles.label}>👤 {t('Username')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter your username"
+                                placeholder={t('Enter your username')}
                                 placeholderTextColor="#9CA3AF"
                                 value={username}
                                 onChangeText={setUsername}
@@ -139,7 +135,7 @@ export default function SignupScreen({ navigation }) {
                             <Text style={styles.label}>📧 {t('Email')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter your email"
+                                placeholder={t('Enter your email')}
                                 placeholderTextColor="#9CA3AF"
                                 value={email}
                                 onChangeText={setEmail}
@@ -155,7 +151,7 @@ export default function SignupScreen({ navigation }) {
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
-                                    placeholder="Enter your password"
+                                    placeholder={t('Enter your password')}
                                     placeholderTextColor="#9CA3AF"
                                     value={password}
                                     onChangeText={setPassword}
@@ -174,11 +170,11 @@ export default function SignupScreen({ navigation }) {
 
                         {/* Confirm Password */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>🔒 {t('Password')} (Confirm)</Text>
+                            <Text style={styles.label}>🔒 {t('Password (Confirm)')}</Text>
                             <View style={styles.passwordRow}>
                                 <TextInput
                                     style={[styles.input, { flex: 1 }]}
-                                    placeholder="Re-enter your password"
+                                    placeholder={t('Re-enter your password')}
                                     placeholderTextColor="#9CA3AF"
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
@@ -197,7 +193,7 @@ export default function SignupScreen({ navigation }) {
 
                         {/* Password strength hint */}
                         <Text style={styles.hint}>
-                            💡 Password must be at least 6 characters
+                            💡 {t('Password must be at least 6 characters')}
                         </Text>
 
                         {/* Sign Up Button */}

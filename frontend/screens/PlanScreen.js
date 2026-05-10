@@ -13,32 +13,32 @@ import { transliterate } from '../services/sinhalaTransliteration';
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
-const DAYS_SHORT = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const MONTHS = (t) => [t('January'), t('February'), t('March'), t('April'), t('May'), t('June'),
+    t('July'), t('August'), t('September'), t('October'), t('November'), t('December')];
+const DAYS_SHORT = (t) => [t('Sun'), t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat')];
 
-const DEFAULT_ACTIVITIES = [
+const DEFAULT_ACTIVITIES = (t) => [
     // Morning
-    { id: 'a1', name: 'Gentle Stretching / Yoga', timeOfDay: 'Morning', icon: '🧘‍♀️', suggestedMin: 12, useTimer: true, description: '10–15 min · Improves blood flow and reduces tension', color: '#10B981' },
-    { id: 'a2', name: 'Meditation / Deep Breathing', timeOfDay: 'Morning', icon: '🌬️', suggestedMin: 7, useTimer: true, description: '5–10 min · Promotes calmness and mental clarity', color: '#7C3AED' },
-    { id: 'a3', name: 'Healthy Breakfast', timeOfDay: 'Morning', icon: '🥗', suggestedMin: 20, useTimer: false, description: 'Fruits, whole grains & protein for energy', color: '#F59E0B' },
+    { id: 'a1', name: t('Gentle Stretching / Yoga'), timeOfDay: 'Morning', icon: '🧘‍♀️', suggestedMin: 12, useTimer: true, description: t('10–15 min · Improves blood flow and reduces tension'), color: '#10B981' },
+    { id: 'a2', name: t('Meditation / Deep Breathing'), timeOfDay: 'Morning', icon: '🌬️', suggestedMin: 7, useTimer: true, description: t('5–10 min · Promotes calmness and mental clarity'), color: '#7C3AED' },
+    { id: 'a3', name: t('Healthy Breakfast'), timeOfDay: 'Morning', icon: '🥗', suggestedMin: 20, useTimer: false, description: t('Fruits, whole grains & protein for energy'), color: '#F59E0B' },
     // Midday
-    { id: 'a4', name: 'Short Walk Outside', timeOfDay: 'Midday', icon: '🚶‍♀️', suggestedMin: 17, useTimer: true, description: '15–20 min · Sunlight boosts vitamin D & mood', color: '#0EA5E9' },
-    { id: 'a5', name: 'Social Connection', timeOfDay: 'Midday', icon: '💬', suggestedMin: 20, useTimer: false, description: 'Talk with a friend or family member', color: '#EC4899' },
-    { id: 'a6', name: 'Light Hobby', timeOfDay: 'Midday', icon: '🎨', suggestedMin: 30, useTimer: true, description: 'Drawing, journaling, knitting, or reading', color: '#F97316' },
+    { id: 'a4', name: t('Short Walk Outside'), timeOfDay: 'Midday', icon: '🚶‍♀️', suggestedMin: 17, useTimer: true, description: t('15–20 min · Sunlight boosts vitamin D & mood'), color: '#0EA5E9' },
+    { id: 'a5', name: t('Social Connection'), timeOfDay: 'Midday', icon: '💬', suggestedMin: 20, useTimer: false, description: t('Talk with a friend or family member'), color: '#EC4899' },
+    { id: 'a6', name: t('Light Hobby'), timeOfDay: 'Midday', icon: '🎨', suggestedMin: 30, useTimer: true, description: t('Drawing, journaling, knitting, or reading'), color: '#F97316' },
     // Afternoon
-    { id: 'a7', name: 'Prenatal Yoga / Swimming', timeOfDay: 'Afternoon', icon: '🏊‍♀️', suggestedMin: 30, useTimer: true, description: 'Gentle exercise or stretching', color: '#06B6D4' },
-    { id: 'a8', name: 'Mindfulness Break', timeOfDay: 'Afternoon', icon: '🌸', suggestedMin: 10, useTimer: true, description: 'Relax and focus on the present moment', color: '#8B5CF6' },
+    { id: 'a7', name: t('Prenatal Yoga / Swimming'), timeOfDay: 'Afternoon', icon: '🏊‍♀️', suggestedMin: 30, useTimer: true, description: t('Gentle exercise or stretching'), color: '#06B6D4' },
+    { id: 'a8', name: t('Mindfulness Break'), timeOfDay: 'Afternoon', icon: '🌸', suggestedMin: 10, useTimer: true, description: t('Relax and focus on the present moment'), color: '#8B5CF6' },
     // Night
-    { id: 'a9', name: 'Relaxation Routine', timeOfDay: 'Night', icon: '🛁', suggestedMin: 20, useTimer: false, description: 'Warm bath, soothing music or aromatherapy', color: '#6366F1' },
-    { id: 'a10', name: 'Good Sleep Habits', timeOfDay: 'Night', icon: '😴', suggestedMin: 0, useTimer: false, description: 'Same bedtime · Reduce screen time before sleep', color: '#1D4ED8' },
+    { id: 'a9', name: t('Relaxation Routine'), timeOfDay: 'Night', icon: '🛁', suggestedMin: 20, useTimer: false, description: t('Warm bath, soothing music or aromatherapy'), color: '#6366F1' },
+    { id: 'a10', name: t('Good Sleep Habits'), timeOfDay: 'Night', icon: '😴', suggestedMin: 0, useTimer: false, description: t('Same bedtime · Reduce screen time before sleep'), color: '#1D4ED8' },
 ];
 
-const TIME_SECTIONS = [
-    { key: 'Morning', label: '🌅 Morning', bg: '#FFFBEB' },
-    { key: 'Midday', label: '☀️ Midday', bg: '#F0F9FF' },
-    { key: 'Afternoon', label: '🌤️ Afternoon', bg: '#F5F3FF' },
-    { key: 'Night', label: '🌙 Night', bg: '#EFF6FF' },
+const TIME_SECTIONS = (t) => [
+    { key: 'Morning', label: `🌅 ${t('Morning')}`, bg: '#FFFBEB' },
+    { key: 'Midday', label: `☀️ ${t('Midday')}`, bg: '#F0F9FF' },
+    { key: 'Afternoon', label: `🌤️ ${t('Afternoon')}`, bg: '#F5F3FF' },
+    { key: 'Night', label: `🌙 ${t('Night')}`, bg: '#EFF6FF' },
 ];
 
 const ICON_OPTIONS = ['🧘', '🏃', '🎨', '📚', '💬', '🥗', '🛁', '😴', '🌸', '💊', '🎵', '🌳', '✍️', '🧶', '☕', '🏊', '🌬️', '🧹', '🌻', '💆'];
@@ -111,13 +111,13 @@ export default function PlanScreen({ navigation }) {
 
     // ── Merged activities (defaults + saved records + custom) ─────────────────
     const mergedActivities = useMemo(() => {
-        const defaults = DEFAULT_ACTIVITIES.map(act => {
+        const defaults = DEFAULT_ACTIVITIES(t).map(act => {
             const rec = dayRecords.find(r => r.activityId === act.id && !r.isCustom);
             return { ...act, _recId: rec?._id || null, completed: rec?.completed || false, timerSeconds: rec?.timerSeconds || 0, isCustom: false };
         });
         const customs = dayRecords.filter(r => r.isCustom).map(r => ({
             id: r.activityId, name: r.activityName, timeOfDay: r.timeOfDay, icon: r.icon,
-            suggestedMin: r.note ? parseInt(r.note) : 0, description: 'Custom activity', color: '#6B7280',
+            suggestedMin: r.note ? parseInt(r.note) : 0, description: t('Custom activity'), color: '#6B7280',
             useTimer: r.timerSeconds !== -1, // Use -1 as a flag for "no timer" in DB if needed, but for now let's just use a Note or check if it's stored.
             _recId: r._id, completed: r.completed, timerSeconds: r.timerSeconds || 0, isCustom: true,
         }));
@@ -138,7 +138,7 @@ export default function PlanScreen({ navigation }) {
     const getDayStatus = (dateStr) => {
         const d = completionByDate[dateStr];
         if (!d || d.total === 0) return 'none';
-        const pct = d.completed / DEFAULT_ACTIVITIES.length; // relative to all 10 defaults
+        const pct = d.completed / DEFAULT_ACTIVITIES(t).length; // relative to all 10 defaults
         if (pct >= 0.8) return 'great';
         if (pct >= 0.4) return 'good';
         return 'started';
@@ -174,7 +174,7 @@ export default function PlanScreen({ navigation }) {
         } catch (err) {
             // Revert
             setDayRecords(prev => prev.map(r => r.activityId === activity.id ? { ...r, completed: !newCompleted } : r));
-            Toast.show({ type: 'error', text1: 'Save Failed', text2: 'Could not update activity.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Save Failed'), text2: t('Could not update activity.'), position: 'top' });
         } finally {
             setSavingId(null);
         }
@@ -226,10 +226,10 @@ export default function PlanScreen({ navigation }) {
                     icon: activity.icon, completed: shouldComplete, timerSeconds: seconds, isCustom: !!activity.isCustom, date: selectedDate
                 }];
             });
-            Toast.show({ type: 'success', text1: '⏱ Timer Saved', text2: `${formatTime(seconds)} recorded & marked done!`, position: 'top' });
+            Toast.show({ type: 'success', text1: `⏱ ${t('Timer Saved')}`, text2: `${formatTime(seconds)} ${t('recorded & marked done!')}`, position: 'top' });
             loadMonthData(); // Update calendar
         } catch (_) {
-            Toast.show({ type: 'error', text1: 'Timer Save Failed', text2: 'Could not save timer.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Timer Save Failed'), text2: t('Could not save timer.'), position: 'top' });
         }
     };
 
@@ -241,7 +241,7 @@ export default function PlanScreen({ navigation }) {
 
     const saveCustomActivity = async () => {
         if (!customName.trim()) {
-            Toast.show({ type: 'error', text1: 'Name Required', text2: 'Please enter an activity name.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Name Required'), text2: t('Please enter an activity name.'), position: 'top' });
             return;
         }
         setSavingCustom(true);
@@ -256,9 +256,9 @@ export default function PlanScreen({ navigation }) {
             });
             setDayRecords(prev => [...prev, res.data.record]);
             setCustomModal({ visible: false });
-            Toast.show({ type: 'success', text1: '✅ Activity Added', text2: `"${customName.trim()}" added to your plan.`, position: 'top' });
+            Toast.show({ type: 'success', text1: `✅ ${t('Activity Added')}`, text2: `"${customName.trim()}" ${t('added to your plan.')}`, position: 'top' });
         } catch (err) {
-            Toast.show({ type: 'error', text1: 'Save Failed', text2: err.response?.data?.message || 'Could not save.', position: 'top' });
+            Toast.show({ type: 'error', text1: t('Save Failed'), text2: err.response?.data?.message || t('Could not save.'), position: 'top' });
         } finally {
             setSavingCustom(false);
         }
@@ -266,17 +266,17 @@ export default function PlanScreen({ navigation }) {
 
     const deleteCustomActivity = (activity) => {
         if (!activity._recId) return;
-        Alert.alert('Delete Activity', `Remove "${activity.name}" from today?`, [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('Delete Activity'), t('Remove "{{name}}" from today?', { name: activity.name }), [
+            { text: t('Cancel'), style: 'cancel' },
             {
-                text: 'Delete', style: 'destructive',
+                text: t('Delete'), style: 'destructive',
                 onPress: async () => {
                     try {
                         await api.delete(`/activity/${activity._recId}`);
                         setDayRecords(prev => prev.filter(r => r.activityId !== activity.id));
-                        Toast.show({ type: 'success', text1: 'Deleted', text2: 'Custom activity removed.', position: 'top' });
+                        Toast.show({ type: 'success', text1: t('Deleted'), text2: t('Custom activity removed.'), position: 'top' });
                     } catch (_) {
-                        Toast.show({ type: 'error', text1: 'Delete Failed', position: 'top' });
+                        Toast.show({ type: 'error', text1: t('Delete Failed'), position: 'top' });
                     }
                 },
             },
@@ -324,7 +324,7 @@ export default function PlanScreen({ navigation }) {
                     {hasTimer && (
                         <Text style={[s.actTimer, { color: activity.color || PURPLE }]}>
                             ⏱ {formatTime(activity.timerSeconds)}
-                            {activity.suggestedMin > 0 && ` / ${activity.suggestedMin} min target`}
+                            {activity.suggestedMin > 0 && ` / ${activity.suggestedMin} ${t('min')} ${t('Target')}`}
                         </Text>
                     )}
                     {hasTimer && activity.suggestedMin > 0 && (
@@ -395,11 +395,6 @@ export default function PlanScreen({ navigation }) {
                     <Text style={s.headerTitle}>{t('Wellness Plan')}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')} style={{ marginRight: 10 }}>
-                        <Text style={{ fontWeight: '700', fontSize: 13, color: '#7C3AED', backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                            {i18n.language === 'en' ? 'සිං' : 'EN'}
-                        </Text>
-                    </TouchableOpacity>
                     <View style={s.headerBadge}>
                         <Text style={s.headerBadgeText}>{dayTotals.done}/{dayTotals.total}</Text>
                     </View>
@@ -410,14 +405,14 @@ export default function PlanScreen({ navigation }) {
                 {/* Month Navigator */}
                 <View style={s.monthNav}>
                     <TouchableOpacity onPress={() => goMonth(-1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>‹</Text></TouchableOpacity>
-                    <Text style={s.monthLabel}>{MONTHS[month - 1]} {year}</Text>
+                    <Text style={s.monthLabel}>{MONTHS(t)[month - 1]} {year}</Text>
                     <TouchableOpacity onPress={() => goMonth(1)} style={s.monthArrow}><Text style={s.monthArrowTxt}>›</Text></TouchableOpacity>
                 </View>
 
                 {/* Calendar */}
                 <View style={s.calCard}>
                     <View style={s.calRow}>
-                        {DAYS_SHORT.map(d => <Text key={d} style={s.calDayHdr}>{d}</Text>)}
+                        {DAYS_SHORT(t).map(d => <Text key={d} style={s.calDayHdr}>{d}</Text>)}
                     </View>
                     <View style={s.calGrid}>
                         {calCells.map((day, idx) => {
@@ -450,10 +445,10 @@ export default function PlanScreen({ navigation }) {
                     </View>
                     {/* Legend */}
                     <View style={s.legend}>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#4014b7ff' }]} /><Text style={s.legendTxt}>Selected</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#F59E0B' }]} /><Text style={s.legendTxt}>Started</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#10B981' }]} /><Text style={s.legendTxt}>Good</Text></View>
-                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#7b0c6eff' }]} /><Text style={s.legendTxt}>Great</Text></View>
+                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#4014b7ff' }]} /><Text style={s.legendTxt}>{t('Selected')}</Text></View>
+                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#F59E0B' }]} /><Text style={s.legendTxt}>{t('Started')}</Text></View>
+                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#10B981' }]} /><Text style={s.legendTxt}>{t('Good')}</Text></View>
+                        <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#7b0c6eff' }]} /><Text style={s.legendTxt}>{t('Great')}</Text></View>
                     </View>
                 </View>
 
@@ -461,7 +456,7 @@ export default function PlanScreen({ navigation }) {
                 <View style={s.daySummary}>
                     <Text style={s.daySummaryDate}>📅 {selectedDate}</Text>
                     <View style={s.daySummaryRight}>
-                        <Text style={s.daySummaryCount}>{dayTotals.done} of {dayTotals.total} done</Text>
+                        <Text style={s.daySummaryCount}>{dayTotals.done} {t('of')} {dayTotals.total} {t('done')}</Text>
                     </View>
                 </View>
                 <View style={s.dayProgressBar}>
@@ -474,13 +469,13 @@ export default function PlanScreen({ navigation }) {
                 {/* Activity Sections */}
                 {loadingDay
                     ? <ActivityIndicator color={PURPLE} size="large" style={{ marginTop: 40 }} />
-                    : TIME_SECTIONS.map(renderSection)
+                    : TIME_SECTIONS(t).map(renderSection)
                 }
 
                 {/* Add Custom Activity */}
                 <TouchableOpacity style={s.addCustomBtn} onPress={openCustomModal}>
                     <Text style={s.addCustomIcon}>＋</Text>
-                    <Text style={s.addCustomText}>Add My Own Activity</Text>
+                    <Text style={s.addCustomText}>{t('Add My Own Activity')}</Text>
                 </TouchableOpacity>
 
                 <View style={{ height: 32 }} />
@@ -495,8 +490,8 @@ export default function PlanScreen({ navigation }) {
                     <View style={s.timerBox}>
                         {/* Title */}
                         <Text style={s.timerIcon}>{timer.activity?.icon || '⏱'}</Text>
-                        <Text style={s.timerName}>{timer.activity?.name}</Text>
-                        {suggestedMin > 0 && <Text style={s.timerTarget}>Target: {suggestedMin} min</Text>}
+                        <Text style={s.timerName}>{t(timer.activity?.name)}</Text>
+                        {suggestedMin > 0 && <Text style={s.timerTarget}>{t('Target')}: {suggestedMin} {t('min')}</Text>}
 
                         {/* Clock */}
                         <View style={s.timerClockRing}>
@@ -533,11 +528,11 @@ export default function PlanScreen({ navigation }) {
                             </TouchableOpacity>
                         </View>
 
-                        <Text style={s.timerHint}>Tap ▶ to start · ✓ to save & close</Text>
+                        <Text style={s.timerHint}>{t('Tap ▶ to start · ✓ to save & close')}</Text>
 
                         <TouchableOpacity style={s.timerCloseBtn}
                             onPress={() => { pauseTimer(); setTimer(p => ({ ...p, visible: false })); }}>
-                            <Text style={s.timerCloseTxt}>Close without saving</Text>
+                            <Text style={s.timerCloseTxt}>{t('Close without saving')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -551,8 +546,8 @@ export default function PlanScreen({ navigation }) {
                 <View style={s.timerOverlay}>
                     <View style={s.customBox}>
                         {/* ── Fixed header (never scrolls away) ── */}
-                        <Text style={s.customTitle}>＋ Add Custom Activity</Text>
-                        <Text style={s.customSubtitle}>Create a personalized wellness activity</Text>
+                        <Text style={s.customTitle}>＋ {t('Add Custom Activity')}</Text>
+                        <Text style={s.customSubtitle}>{t('Create a personalized wellness activity')}</Text>
 
                         {/* ── Scrollable body so keyboard is always reachable ── */}
                         <ScrollView
@@ -567,13 +562,13 @@ export default function PlanScreen({ navigation }) {
                                     style={{ backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}
                                 >
                                     <Text style={{ fontSize: 12, color: '#7C3AED', fontWeight: 'bold' }}>
-                                        {sinhalaMode ? '🔠 Abc Mode' : '🇱🇰 සිං Mode'}
+                                        {sinhalaMode ? '🔠 ' + t('Abc Mode') : '🇱🇰 ' + t('Sin Mode')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
                             <TextInput
                                 style={s.customInput}
-                                placeholder="e.g. Evening Journaling"
+                                placeholder={t("e.g. Evening Journaling")}
                                 placeholderTextColor="#9CA3AF"
                                 value={customName}
                                 onChangeText={(txt) => setCustomName(sinhalaMode ? transliterate(txt) : txt)}
@@ -592,18 +587,18 @@ export default function PlanScreen({ navigation }) {
                                 />
                             )}
 
-                            <Text style={[s.customLabel, { marginTop: 10 }]}>Time of Day</Text>
+                            <Text style={[s.customLabel, { marginTop: 10 }]}>{t('Time of Day')}</Text>
                             <View style={s.customTimeRow}>
                                 {['Morning', 'Midday', 'Afternoon', 'Night'].map(tod => (
                                     <TouchableOpacity key={tod}
                                         style={[s.customTimeChip, customTimeOfDay === tod && s.customTimeChipActive]}
                                         onPress={() => setCustomTimeOfDay(tod)}>
-                                        <Text style={[s.customTimeChipTxt, customTimeOfDay === tod && { color: WHITE }]}>{tod}</Text>
+                                        <Text style={[s.customTimeChipTxt, customTimeOfDay === tod && { color: WHITE }]}>{t(tod)}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
 
-                            <Text style={s.customLabel}>Choose Icon</Text>
+                            <Text style={s.customLabel}>{t('Choose Icon')}</Text>
                             <View style={s.iconGrid}>
                                 {ICON_OPTIONS.map(ic => (
                                     <TouchableOpacity key={ic} style={[s.iconCell, customIcon === ic && s.iconCellActive]}
@@ -613,10 +608,10 @@ export default function PlanScreen({ navigation }) {
                                 ))}
                             </View>
 
-                            <Text style={s.customLabel}>Suggested Duration (min, optional)</Text>
+                            <Text style={s.customLabel}>{t('Suggested Duration (min, optional)')}</Text>
                             <TextInput
                                 style={s.customInput}
-                                placeholder="e.g. 15"
+                                placeholder={t("e.g. 15")}
                                 placeholderTextColor="#9CA3AF"
                                 value={customDuration}
                                 onChangeText={setCustomDuration}
@@ -624,7 +619,7 @@ export default function PlanScreen({ navigation }) {
                             />
 
                             <View style={s.customTimerToggle}>
-                                <Text style={s.customLabel}>Enable Stopwatch?</Text>
+                                <Text style={s.customLabel}>{t('Enable Stopwatch?')}</Text>
                                 <TouchableOpacity
                                     style={[s.toggleBtn, customUseTimer && s.toggleBtnActive]}
                                     onPress={() => setCustomUseTimer(!customUseTimer)}
@@ -635,12 +630,12 @@ export default function PlanScreen({ navigation }) {
 
                             <View style={s.customActions}>
                                 <TouchableOpacity style={s.customCancelBtn} onPress={() => setCustomModal({ visible: false })}>
-                                    <Text style={s.customCancelTxt}>Cancel</Text>
+                                    <Text style={s.customCancelTxt}>{t('Cancel')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={s.customSaveBtn} onPress={saveCustomActivity} disabled={savingCustom}>
                                     {savingCustom
                                         ? <ActivityIndicator color={WHITE} size="small" />
-                                        : <Text style={s.customSaveTxt}>Add Activity</Text>
+                                        : <Text style={s.customSaveTxt}>{t('Add Activity')}</Text>
                                     }
                                 </TouchableOpacity>
                             </View>
