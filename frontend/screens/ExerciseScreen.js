@@ -21,6 +21,102 @@ const todayStr = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
+// YouTube Player Component
+const YouTubePlayer = ({ url, style }) => {
+    const { t } = useTranslation();
+    const [error, setError] = useState(false);
+    const webViewRef = useRef(null);
+    
+    const getEmbedUrl = (videoUrl) => {
+        if (!videoUrl) return '';
+        let videoId = '';
+        
+        if (videoUrl.includes('youtube.com/embed/')) {
+            return videoUrl;
+        }
+        
+        if (videoUrl.includes('youtu.be/')) {
+            videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+        } else if (videoUrl.includes('youtube.com/watch')) {
+            try {
+                const urlParams = new URLSearchParams(videoUrl.split('?')[1]);
+                videoId = urlParams.get('v');
+            } catch (e) {
+                console.log('Error parsing URL:', e);
+            }
+        }
+        
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1&rel=0&modestbranding=1`;
+        }
+        
+        return videoUrl;
+    };
+    
+    const embedUrl = getEmbedUrl(url);
+    
+    if (!embedUrl.includes('youtube.com/embed/')) {
+        return (
+            <View style={[styles.videoPlayer, styles.videoPlayerCentered]}>
+                <Text style={{ color: '#fff', textAlign: 'center' }}>
+                    {t('Failed to load video')}
+                </Text>
+            </View>
+        );
+    }
+    
+    return (
+        <View style={[styles.videoPlayer, { overflow: 'hidden' }]}>
+            {error && (
+                <View style={styles.webViewErrorContainer}>
+                    <Text style={styles.webViewErrorText}>
+                        {t('Failed to load video')}
+                    </Text>
+                    <TouchableOpacity 
+                        style={styles.webViewRetryBtn}
+                        onPress={() => {
+                            setError(false);
+                            webViewRef.current?.reload();
+                        }}
+                    >
+                        <Text style={styles.webViewRetryBtnText}>
+                            {t('Retry')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+            {Platform.OS === 'web' ? (
+                <iframe
+                    src={embedUrl}
+                    style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                />
+            ) : (
+                <WebView
+                    ref={webViewRef}
+                    source={{ uri: embedUrl }}
+                    style={styles.webView}
+                    allowsFullscreenVideo={true}
+                    allowsInlineMediaPlayback={true}
+                    mediaPlaybackRequiresUserAction={false}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    startInLoadingState={true}
+                    renderLoading={() => (
+                        <View style={styles.webViewLoadingContainer}>
+                            <ActivityIndicator size="large" color="#7C3AED" />
+                        </View>
+                    )}
+                    onError={() => {
+                        setError(true);
+                    }}
+                />
+            )}
+        </View>
+    );
+};
+
 // Health Data Input Component
 const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
     const { t } = useTranslation();
@@ -29,9 +125,8 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
     const [weeks, setWeeks] = useState(initialData?.weeksAfterDelivery || '');
     const [deliveryType, setDeliveryType] = useState(initialData?.deliveryType || 'normal');
     
-    // Auto-calculate weeks whenever deliveryDate changes
     useEffect(() => {
-        if (deliveryDate && deliveryDate.length === 10) { // YYYY-MM-DD
+        if (deliveryDate && deliveryDate.length === 10) {
             try {
                 const birthDate = new Date(deliveryDate);
                 const today = new Date();
@@ -81,17 +176,17 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
     return (
         <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
             <Text style={styles.formTitle}>
-                {t("Today's Health Status")}
+                {t('Today\'s Health Status')}
             </Text>
             
             {(!user?.deliveryDate) && (
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>
-                        {t('Delivery Date')} (YYYY-MM-DD)
+                        {t('Delivery Date')} ({t('YYYY-MM-DD')})
                     </Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="2024-05-10"
+                        placeholder={t("2024-05-10")}
                         value={deliveryDate}
                         onChangeText={setDeliveryDate}
                         placeholderTextColor="#9CA3AF"
@@ -101,7 +196,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
             
             <View style={styles.inputGroup}>
                 <Text style={styles.label}>
-                    {t('Weeks after delivery')}
+                    {t('Weeks After Delivery')}
                 </Text>
                 <TextInput
                     style={[styles.input, deliveryDate ? { backgroundColor: '#F3F4F6', color: '#6B7280' } : {}]}
@@ -161,7 +256,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setDoctorRestrictions(!doctorRestrictions)}>
                     <View style={[styles.checkbox, doctorRestrictions && styles.checkboxChecked]} />
-                    <Text style={styles.checkboxLabel}>{t("Doctor's Restrictions")}</Text>
+                    <Text style={styles.checkboxLabel}>{t('Doctor Restrictions')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.checkboxRow} onPress={() => setMuscleWeakness(!muscleWeakness)}>
                     <View style={[styles.checkbox, muscleWeakness && styles.checkboxChecked]} />
@@ -170,7 +265,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('Fatigue Level Label')}</Text>
+                <Text style={styles.label}>{t('Fatigue Level')}</Text>
                 <View style={styles.rowButtons}>
                     {['low', 'medium', 'high'].map(level => (
                         <TouchableOpacity
@@ -187,7 +282,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('Mobility Level Label')}</Text>
+                <Text style={styles.label}>{t('Mobility Level')}</Text>
                 <View style={styles.columnButtons}>
                     {['very_limited', 'limited', 'normal'].map(level => (
                         <TouchableOpacity
@@ -196,7 +291,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
                             onPress={() => setMobility(level)}
                         >
                             <Text style={[styles.optionText, mobility === level && styles.optionTextActive]}>
-                                {t(level === 'very_limited' ? 'Very Restricted' : level === 'limited' ? 'Restricted' : 'Normal Mobility')}
+                                {level === 'very_limited' ? t('Very Restricted') : level === 'limited' ? t('Restricted') : t('Normal Mobility')}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -204,7 +299,7 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
             </View>
             
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('Willingness to Exercise Label')}</Text>
+                <Text style={styles.label}>{t('Willingness to Exercise')}</Text>
                 <View style={styles.rowButtons}>
                     {['low', 'medium', 'high'].map(level => (
                         <TouchableOpacity
@@ -229,95 +324,11 @@ const HealthDataForm = ({ onSubmit, loading, initialData, user }) => {
                     <ActivityIndicator color="#fff" />
                 ) : (
                     <Text style={styles.submitBtnText}>
-                        {t('Get Exercise Recommendation')}
+                        {t('Get Exercise Recommendations')}
                     </Text>
                 )}
             </TouchableOpacity>
         </ScrollView>
-    );
-};
-
-// YouTube Player Component
-const YouTubePlayer = ({ url, style }) => {
-    const { t } = useTranslation();
-    const [error, setError] = useState(false);
-    const webViewRef = useRef(null);
-    
-    const getEmbedUrl = (videoUrl) => {
-        if (!videoUrl) return '';
-        let videoId = '';
-        
-        if (videoUrl.includes('youtube.com/embed/')) {
-            return videoUrl;
-        }
-        
-
-        
-        if (videoUrl.includes('youtu.be/')) {
-            videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
-        } else if (videoUrl.includes('youtube.com/watch')) {
-            const urlParams = new URLSearchParams(videoUrl.split('?')[1]);
-            videoId = urlParams.get('v');
-        }
-        
-        if (videoId) {
-            return `https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1&rel=0&modestbranding=1`;
-        }
-        
-        return videoUrl;
-    };
-    
-    const embedUrl = getEmbedUrl(url);
-    
-    return (
-        <View style={[styles.videoPlayer, { overflow: 'hidden' }]}>
-            {error && (
-                <View style={styles.webViewErrorContainer}>
-                    <Text style={styles.webViewErrorText}>
-                        {t('Failed to load video')}
-                    </Text>
-                    <TouchableOpacity 
-                        style={styles.webViewRetryBtn}
-                        onPress={() => {
-                            setError(false);
-                            webViewRef.current?.reload();
-                        }}
-                    >
-                        <Text style={styles.webViewRetryBtnText}>
-                            {t('Retry')}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-            {Platform.OS === 'web' ? (
-                <iframe
-                    src={embedUrl}
-                    style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                />
-            ) : (
-                <WebView
-                    ref={webViewRef}
-                    source={{ uri: embedUrl }}
-                    style={styles.webView}
-                    allowsFullscreenVideo={true}
-                    allowsInlineMediaPlayback={true}
-                    mediaPlaybackRequiresUserAction={false}
-                    javaScriptEnabled={true}
-                    domStorageEnabled={true}
-                    startInLoadingState={true}
-                    renderLoading={() => (
-                        <View style={styles.webViewLoadingContainer}>
-                            <ActivityIndicator size="large" color="#7C3AED" />
-                        </View>
-                    )}
-                    onError={() => {
-                        setError(true);
-                    }}
-                />
-            )}
-        </View>
     );
 };
 
@@ -332,8 +343,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
     
     const details = exercise.exerciseDetails || {};
     
-    // Get videos array (supports both old videoUrl and new videos array)
-    const videoList = details.videos || (details.videoUrl ? [{ url: details.videoUrl, title: details.name, titleSi: details.nameSi, duration: `${details.duration} ${t('min')}`, source: t("YouTube") }] : []);
+    const videoList = details.videos || (details.videoUrl ? [{ url: details.videoUrl, title: details.name, titleSi: details.nameSi, duration: `${details.duration} ${t('min')}`, source: "YouTube" }] : []);
     const hasMultipleVideos = videoList.length > 1;
     
     const getExerciseIcon = (type) => {
@@ -385,7 +395,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
             <Text style={styles.videoOptionIcon}>📹</Text>
             <View style={styles.videoOptionInfo}>
                 <Text style={styles.videoOptionTitle}>
-                    {item.titleSi || (item.title || `${t('Video')} ${index + 1}`)}
+                    {item.titleSi || item.title || `${t('Video')} ${index + 1}`}
                 </Text>
                 <Text style={styles.videoOptionDuration}>{item.duration || `${details.duration} ${t('min')}`} • {item.source === 'YouTube' ? t('YouTube') : (item.source || t('YouTube'))}</Text>
             </View>
@@ -407,7 +417,7 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                     <Text style={styles.exerciseMeta}>
                         ⏱️ {t('Duration')}: {details.duration || exercise.duration} {t('min')} • 
                         📊 {t('Intensity')}: {
-                            details.intensity ? t(details.intensity.charAt(0).toUpperCase() + details.intensity.slice(1)) : ''
+                            details.intensity === 'low' ? t('Low') : details.intensity === 'medium' ? t('Medium') : details.intensity === 'controlled' ? t('Controlled') : ''
                         }
                     </Text>
                 </View>
@@ -441,7 +451,6 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 </View>
             )}
             
-            {/* Watch Video Button - shows count if multiple videos */}
             {videoList.length > 0 && (
                 <TouchableOpacity
                     style={styles.watchVideoBtn}
@@ -457,17 +466,6 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                 </TouchableOpacity>
             )}
             
-            {/* Upload Video Button (for user's own recording) */}
-            {!isCompleted && (
-                <TouchableOpacity
-                    style={styles.videoBtn}
-                    onPress={handleUpload}
-                >
-                    <Text style={styles.videoBtnText}>📹 {t('Upload Your Exercise Video')}</Text>
-                </TouchableOpacity>
-            )}
-            
-            {/* Video Selection & Playback Modal */}
             <Modal visible={videoModal} transparent animationType="slide" onRequestClose={() => {
                 setVideoModal(false);
                 setVideoPlaying(false);
@@ -480,7 +478,6 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                         </Text>
                         
                         {!selectedVideo ? (
-                            // Show video list
                             <FlatList
                                 data={videoList}
                                 keyExtractor={(item, index) => index.toString()}
@@ -489,7 +486,6 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                                 showsVerticalScrollIndicator={false}
                             />
                         ) : (
-                            // Show video player
                             <>
                                 <TouchableOpacity 
                                     style={styles.backToVideoList}
@@ -523,7 +519,6 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
                                         style={styles.playBtn} 
                                         onPress={() => {
                                             if (selectedVideo.url.includes('youtube') || selectedVideo.url.includes('youtu.be')) {
-                                                // YouTube video already playing in WebView, don't interfere
                                                 return;
                                             } else {
                                                 if (videoPlaying) {
@@ -575,22 +570,18 @@ const ProgressDashboard = ({ progress }) => {
             </Text>
             
             <View style={styles.statsGrid}>
-                <View style={styles.statBox}>
+                <LinearGradient colors={['#FF9A9E', '#FECFEF']} style={styles.statBox} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <Text style={styles.statValue}>{progress.totalExercises}</Text>
                     <Text style={styles.statLabel}>{t('Total Exercises')}</Text>
-                </View>
-                <View style={styles.statBox}>
-                    <Text style={styles.statValue}>{progress.averageAccuracy}%</Text>
-                    <Text style={styles.statLabel}>{t('Avg Accuracy')}</Text>
-                </View>
-                <View style={styles.statBox}>
+                </LinearGradient>
+                <LinearGradient colors={['#fbc2eb', '#a6c1ee']} style={styles.statBox} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <Text style={styles.statValue}>{progress.currentStreak}</Text>
                     <Text style={styles.statLabel}>{t('Current Streak')}</Text>
-                </View>
-                <View style={styles.statBox}>
+                </LinearGradient>
+                <LinearGradient colors={['#84fab0', '#8fd3f4']} style={styles.statBox} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <Text style={styles.statValue}>{progress.bestStreak}</Text>
                     <Text style={styles.statLabel}>{t('Best Streak')}</Text>
-                </View>
+                </LinearGradient>
             </View>
             
             {progress.progressData && progress.progressData.length > 0 && (
@@ -632,7 +623,7 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
         return (
             <View style={styles.safetyLimited}>
                 <Text style={styles.safetyIcon}>⚠️</Text>
-                <Text style={styles.safetyTitle}>{t('Limited')}</Text>
+                <Text style={styles.safetyTitle}>{t('Limited Exercise')}</Text>
                 <Text style={styles.safetyMessage}>{message}</Text>
                 <Text style={styles.safetySubtext}>
                     {t('Only gentle exercises are recommended')}
@@ -654,9 +645,8 @@ const SafetyWarning = ({ safetyStatus, safetyMessage, safetyMessageSi }) => {
 
 // Main Exercise Screen
 export default function ExerciseScreen({ navigation }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const { user } = useAuth();
-    const isSinhala = i18n.language === 'si';
     const [hasData, setHasData] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
     const [safetyStatus, setSafetyStatus] = useState(null);
@@ -786,8 +776,7 @@ export default function ExerciseScreen({ navigation }) {
     
     return (
         <SafeAreaView style={styles.safe}>
-            <LinearGradient colors={['#F8F4FF', '#F0FAFF']} style={styles.gradient}>
-                {/* Header */}
+            <LinearGradient colors={['#F4F0FB', '#FDFCFE']} style={styles.gradient}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Text style={styles.backIcon}>←</Text>
@@ -802,10 +791,8 @@ export default function ExerciseScreen({ navigation }) {
                 </View>
                 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    {/* Progress Dashboard */}
-                    <ProgressDashboard progress={progress} isSinhala={isSinhala} />
+                    <ProgressDashboard progress={progress} />
                     
-                    {/* Safety Warning */}
                     {safetyStatus && (
                         <SafetyWarning
                             safetyStatus={safetyStatus}
@@ -814,7 +801,6 @@ export default function ExerciseScreen({ navigation }) {
                         />
                     )}
                     
-                    {/* Health Data Form */}
                     {(showForm || !hasData) && (
                         <HealthDataForm
                             onSubmit={handleSubmitHealthData}
@@ -823,7 +809,6 @@ export default function ExerciseScreen({ navigation }) {
                         />
                     )}
                     
-                    {/* Exercise Recommendations */}
                     {!showForm && hasData && recommendations.length > 0 && safetyStatus !== 'blocked' && (
                         <View style={styles.recommendationsContainer}>
                             <Text style={styles.recommendationsTitle}>
@@ -841,7 +826,6 @@ export default function ExerciseScreen({ navigation }) {
                         </View>
                     )}
                     
-                    {/* No Recommendations Message */}
                     {!showForm && hasData && recommendations.length === 0 && safetyStatus !== 'blocked' && (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyEmoji}>🌸</Text>
@@ -854,7 +838,6 @@ export default function ExerciseScreen({ navigation }) {
                         </View>
                     )}
                     
-                    {/* Blocked Message */}
                     {safetyStatus === 'blocked' && (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyEmoji}>🩺</Text>
@@ -867,7 +850,6 @@ export default function ExerciseScreen({ navigation }) {
                         </View>
                     )}
                     
-                    {/* Add New Data Button */}
                     {!showForm && hasData && (
                         <TouchableOpacity
                             style={styles.addDataBtn}
@@ -887,309 +869,327 @@ export default function ExerciseScreen({ navigation }) {
     );
 }
 
+// Keep all existing styles as they are (they remain unchanged)
 const styles = StyleSheet.create({
     safe: { flex: 1 },
     gradient: { flex: 1 },
-    
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: 16, paddingTop: 16, paddingBottom: 10,
+        paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10,
         backgroundColor: 'transparent',
     },
-    backBtn: { padding: 8, width: 44 },
-    backIcon: { fontSize: 28, color: '#7C3AED', fontWeight: 'bold' },
+    backBtn: { padding: 8, width: 44, alignItems: 'center', justifyContent: 'center' },
+    backIcon: { fontSize: 32, color: '#a18cd1', fontWeight: '900' },
     headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    headerEmoji: { fontSize: 24 },
-    headerTitle: { fontSize: 18, fontWeight: '800', color: '#7C3AED' },
-    
-    scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
-    
-    // Progress Styles
+    headerEmoji: { fontSize: 26 },
+    headerTitle: { fontSize: 20, fontWeight: '800', color: '#334155' },
+    scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+
+    // Progress
     progressContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 24,
-        padding: 16,
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        borderRadius: 28,
+        padding: 20,
         marginBottom: 16,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        elevation: 4,
+        shadowColor: '#a18cd1',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
     },
-    progressTitle: { fontSize: 16, fontWeight: '800', color: '#1F2937', marginBottom: 12 },
+    progressTitle: { fontSize: 20, fontWeight: '800', color: '#334155', marginBottom: 14 },
     statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     statBox: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: 24,
+        paddingVertical: 18,
+        paddingHorizontal: 10,
         alignItems: 'center',
-        minWidth: (width - 52) / 2,
+        minWidth: (width - 60) / 3,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOpacity: 0.10,
+        shadowRadius: 10,
+        shadowOffset: { height: 5, width: 0 },
     },
-    statValue: { fontSize: 22, fontWeight: '800', color: '#7C3AED' },
-    statLabel: { fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'center' },
+    statValue: { fontSize: 24, fontWeight: '900', color: '#FFF' },
+    statLabel: { fontSize: 11, color: '#FFF', fontWeight: '700', marginTop: 4, textAlign: 'center' },
     chartContainer: { marginTop: 16 },
-    chartTitle: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 12 },
+    chartTitle: { fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 12 },
     barChart: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', height: 100 },
     barItem: { alignItems: 'center', width: 35 },
-    bar: { width: 24, backgroundColor: '#7C3AED', borderRadius: 6, marginBottom: 8, minHeight: 4 },
+    bar: { width: 24, backgroundColor: '#a18cd1', borderRadius: 6, marginBottom: 8, minHeight: 4 },
     barLabel: { fontSize: 9, color: '#6B7280' },
-    
-    // Safety Styles
+
+    // Safety
     safetyBlocked: {
         backgroundColor: '#FEE2E2',
-        borderRadius: 20,
-        padding: 16,
+        borderRadius: 28,
+        padding: 20,
         marginBottom: 16,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#EF4444',
+        elevation: 2,
+        shadowColor: '#EF4444',
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        shadowOffset: { height: 3, width: 0 },
     },
     safetyLimited: {
         backgroundColor: '#FEF3C7',
-        borderRadius: 20,
-        padding: 16,
+        borderRadius: 28,
+        padding: 20,
         marginBottom: 16,
         borderWidth: 1,
         borderColor: '#F59E0B',
+        elevation: 2,
+        shadowColor: '#F59E0B',
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        shadowOffset: { height: 3, width: 0 },
     },
     safetySafe: {
         backgroundColor: '#D1FAE5',
-        borderRadius: 20,
-        padding: 16,
+        borderRadius: 28,
+        padding: 20,
         marginBottom: 16,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#10B981',
+        elevation: 2,
+        shadowColor: '#10B981',
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        shadowOffset: { height: 3, width: 0 },
     },
-    safetyIcon: { fontSize: 32, marginBottom: 8 },
+    safetyIcon: { fontSize: 36, marginBottom: 8 },
     safetyTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 8 },
-    safetyMessage: { fontSize: 14, color: '#374151', textAlign: 'center', marginBottom: 8 },
+    safetyMessage: { fontSize: 14, color: '#374151', textAlign: 'center', marginBottom: 8, lineHeight: 20 },
     safetySubtext: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
-    safetyAdvice: { fontSize: 13, fontWeight: '600', color: '#EF4444' },
-    
-    // Form Styles
-    formContainer: { backgroundColor: '#fff', borderRadius: 24, padding: 16, marginBottom: 16 },
-    formTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 16 },
-    inputGroup: { marginBottom: 16 },
-    label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
+    safetyAdvice: { fontSize: 13, fontWeight: '700', color: '#EF4444' },
+
+    // Form
+    formContainer: {
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        borderRadius: 32,
+        padding: 24,
+        marginBottom: 16,
+        elevation: 4,
+        shadowColor: '#a18cd1',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.10,
+        shadowRadius: 16,
+    },
+    formTitle: { fontSize: 20, fontWeight: '800', color: '#334155', marginBottom: 18 },
+    inputGroup: { marginBottom: 18 },
+    label: { fontSize: 14, fontWeight: '700', color: '#334155', marginBottom: 8 },
     input: {
         borderWidth: 1.5,
         borderColor: '#E5E7EB',
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: 16,
+        padding: 14,
         fontSize: 14,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#F1F5F9',
         color: '#1F2937',
     },
     rowButtons: { flexDirection: 'row', gap: 10 },
     columnButtons: { gap: 8 },
     optionBtn: {
         flex: 1,
-        paddingVertical: 10,
-        borderRadius: 10,
-        backgroundColor: '#F3F4F6',
+        paddingVertical: 12,
+        borderRadius: 14,
+        backgroundColor: '#F1F5F9',
         alignItems: 'center',
         borderWidth: 1.5,
         borderColor: '#E5E7EB',
     },
     optionBtnWide: {
-        paddingVertical: 10,
-        borderRadius: 10,
-        backgroundColor: '#F3F4F6',
+        paddingVertical: 12,
+        borderRadius: 14,
+        backgroundColor: '#F1F5F9',
         alignItems: 'center',
         borderWidth: 1.5,
         borderColor: '#E5E7EB',
     },
-    optionBtnActive: { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
-    optionText: { fontSize: 14, color: '#374151' },
-    optionTextActive: { color: '#fff', fontWeight: '600' },
+    optionBtnActive: { backgroundColor: '#a18cd1', borderColor: '#a18cd1' },
+    optionText: { fontSize: 14, color: '#334155', fontWeight: '600' },
+    optionTextActive: { color: '#fff', fontWeight: '700' },
     checkboxGroup: { marginBottom: 12 },
     checkboxRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 6 },
     checkbox: {
-        width: 22,
-        height: 22,
-        borderRadius: 6,
+        width: 24,
+        height: 24,
+        borderRadius: 8,
         borderWidth: 2,
         borderColor: '#D1D5DB',
         marginRight: 12,
         backgroundColor: '#fff',
     },
-    checkboxChecked: { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
-    checkboxLabel: { fontSize: 14, color: '#374151' },
+    checkboxChecked: { backgroundColor: '#a18cd1', borderColor: '#a18cd1' },
+    checkboxLabel: { fontSize: 14, color: '#334155', fontWeight: '500' },
     submitBtn: {
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#a18cd1',
         padding: 16,
-        borderRadius: 14,
+        borderRadius: 20,
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: 10,
+        elevation: 4,
+        shadowColor: '#a18cd1',
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        shadowOffset: { height: 4, width: 0 },
     },
     submitBtnDisabled: { opacity: 0.7 },
-    submitBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-    
-    // Exercise Card Styles
+    submitBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+
+    // Exercise Cards
     recommendationsContainer: { marginBottom: 16 },
-    recommendationsTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 12 },
+    recommendationsTitle: { fontSize: 20, fontWeight: '800', color: '#334155', marginBottom: 14 },
     exerciseCard: {
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 12,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        borderRadius: 28,
+        padding: 20,
+        marginBottom: 14,
+        elevation: 3,
+        shadowColor: '#a18cd1',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
     },
-    exerciseCardCompleted: { opacity: 0.85 },
+    exerciseCardCompleted: { opacity: 0.82 },
     exerciseHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    exerciseIcon: { fontSize: 32, marginRight: 12 },
+    exerciseIcon: { fontSize: 34, marginRight: 14 },
     exerciseInfo: { flex: 1 },
-    exerciseName: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
-    exerciseMeta: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+    exerciseName: { fontSize: 17, fontWeight: '800', color: '#1E293B' },
+    exerciseMeta: { fontSize: 12, color: '#64748B', marginTop: 3 },
     completeBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#7C3AED',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#a18cd1',
         alignItems: 'center',
         justifyContent: 'center',
+        elevation: 2,
+        shadowColor: '#a18cd1',
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        shadowOffset: { height: 3, width: 0 },
     },
-    completeBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+    completeBtnText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
     completedBadge: {
         backgroundColor: '#10B981',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 14,
     },
-    completedBadgeText: { fontSize: 11, color: '#fff', fontWeight: '600' },
-    exerciseDesc: { fontSize: 13, color: '#6B7280', marginBottom: 12, lineHeight: 18 },
+    completedBadgeText: { fontSize: 12, color: '#fff', fontWeight: '700' },
+    exerciseDesc: { fontSize: 13, color: '#64748B', marginBottom: 12, lineHeight: 20 },
     stepsContainer: { marginBottom: 12 },
-    stepsTitle: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
-    stepText: { fontSize: 12, color: '#6B7280', marginLeft: 8, marginBottom: 2 },
-    
-    // Video Button Styles
+    stepsTitle: { fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6 },
+    stepText: { fontSize: 12, color: '#64748B', marginLeft: 8, marginBottom: 3, lineHeight: 18 },
+
+    // Video
     watchVideoBtn: {
-        backgroundColor: '#7C3AED',
-        padding: 12,
-        borderRadius: 12,
+        backgroundColor: '#a18cd1',
+        padding: 14,
+        borderRadius: 16,
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: 10,
+        elevation: 3,
+        shadowColor: '#a18cd1',
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        shadowOffset: { height: 3, width: 0 },
     },
-    watchVideoBtnText: { fontSize: 13, color: '#fff', fontWeight: '600' },
+    watchVideoBtnText: { fontSize: 14, color: '#fff', fontWeight: '700' },
     videoBtn: {
-        backgroundColor: '#F3F4F6',
-        padding: 12,
-        borderRadius: 12,
+        backgroundColor: '#F1F5F9',
+        padding: 14,
+        borderRadius: 16,
         alignItems: 'center',
         marginTop: 8,
     },
-    videoBtnText: { fontSize: 13, color: '#7C3AED', fontWeight: '600' },
-    
-    // Video Modal Styles
-    videoModalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 24, width: width - 40, alignItems: 'center', maxHeight: '90%' },
-    videoPlayer: { width: width - 80, height: 220, borderRadius: 12, marginBottom: 16, backgroundColor: '#000' },
+    videoBtnText: { fontSize: 14, color: '#a18cd1', fontWeight: '700' },
+
+    // Video Modal
+    videoModalContent: { backgroundColor: '#fff', borderRadius: 32, padding: 24, width: width - 40, alignItems: 'center', maxHeight: '90%' },
+    videoPlayer: { width: width - 80, height: 220, borderRadius: 16, marginBottom: 16, backgroundColor: '#000' },
     videoPlayerCentered: { justifyContent: 'center', alignItems: 'center' },
     videoControls: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
-    playBtn: { backgroundColor: '#7C3AED', paddingHorizontal: 28, paddingVertical: 10, borderRadius: 24 },
-    playBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    playBtn: { backgroundColor: '#a18cd1', paddingHorizontal: 28, paddingVertical: 12, borderRadius: 24 },
+    playBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
     videoList: { width: '100%', maxHeight: 400 },
     videoOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        padding: 12,
+        backgroundColor: '#F1F5F9',
+        borderRadius: 16,
+        padding: 14,
         marginBottom: 10,
     },
     videoOptionIcon: { fontSize: 24, marginRight: 12 },
     videoOptionInfo: { flex: 1 },
-    videoOptionTitle: { fontSize: 14, fontWeight: '600', color: '#1F2937' },
-    videoOptionDuration: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+    videoOptionTitle: { fontSize: 14, fontWeight: '700', color: '#1E293B' },
+    videoOptionDuration: { fontSize: 11, color: '#64748B', marginTop: 2 },
     videoOptionArrow: { fontSize: 18, color: '#9CA3AF' },
     backToVideoList: { alignSelf: 'flex-start', marginBottom: 12 },
-    backToVideoListText: { fontSize: 14, color: '#7C3AED', fontWeight: '600' },
-    videoTitle: { fontSize: 14, color: '#374151', textAlign: 'center', marginBottom: 12 },
-    
-    // WebView Styles
-    webView: {
-        flex: 1,
-    },
+    backToVideoListText: { fontSize: 14, color: '#a18cd1', fontWeight: '700' },
+    videoTitle: { fontSize: 14, color: '#334155', textAlign: 'center', marginBottom: 12, fontWeight: '600' },
+
+    // WebView
+    webView: { flex: 1 },
     webViewLoadingContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
-        zIndex: 10,
-    },
-    webViewLoadingText: {
-        color: '#fff',
-        marginTop: 10,
-        fontSize: 12,
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center', alignItems: 'center',
+        backgroundColor: '#000', zIndex: 10,
     },
     webViewErrorContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
-        zIndex: 10,
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center', alignItems: 'center',
+        backgroundColor: '#000', zIndex: 10,
     },
-    webViewErrorText: {
-        color: '#fff',
-        fontSize: 14,
-        marginBottom: 15,
-    },
-    webViewRetryBtn: {
-        backgroundColor: '#7C3AED',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 8,
-    },
-    webViewRetryBtnText: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    
+    webViewErrorText: { color: '#fff', fontSize: 14, marginBottom: 15 },
+    webViewRetryBtn: { backgroundColor: '#a18cd1', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+    webViewRetryBtnText: { color: '#fff', fontWeight: '700' },
+
     // Empty State
     emptyContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 24,
-        padding: 32,
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        borderRadius: 32,
+        padding: 36,
         alignItems: 'center',
         marginBottom: 16,
+        elevation: 3,
+        shadowColor: '#a18cd1',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { height: 4, width: 0 },
     },
-    emptyEmoji: { fontSize: 48, marginBottom: 16 },
-    emptyTitle: { fontSize: 20, fontWeight: '800', color: '#1F2937', marginBottom: 8 },
-    emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 20 },
-    
+    emptyEmoji: { fontSize: 52, marginBottom: 16 },
+    emptyTitle: { fontSize: 22, fontWeight: '900', color: '#1E293B', marginBottom: 8 },
+    emptyText: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22 },
+
     // Add Data Button
     addDataBtn: {
-        backgroundColor: '#F3F4F6',
+        backgroundColor: 'rgba(161,140,209,0.08)',
         padding: 16,
-        borderRadius: 14,
+        borderRadius: 20,
         alignItems: 'center',
         borderWidth: 1.5,
-        borderColor: '#7C3AED',
+        borderColor: '#a18cd1',
         borderStyle: 'dashed',
         marginBottom: 16,
     },
-    addDataBtnText: { fontSize: 14, color: '#7C3AED', fontWeight: '600' },
-    
-    // Modal Styles
+    addDataBtnText: { fontSize: 14, color: '#a18cd1', fontWeight: '700' },
+
+    // Modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 24, width: width - 40, maxHeight: '80%' },
-    modalTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 8, textAlign: 'center' },
-    modalSubtitle: { fontSize: 13, color: '#6B7280', marginBottom: 16, textAlign: 'center' },
-    videoPreview: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
-    pickVideoBtn: { backgroundColor: '#7C3AED', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
-    pickVideoBtnText: { color: '#fff', fontWeight: '600' },
+    modalContent: { backgroundColor: '#fff', borderRadius: 32, padding: 24, width: width - 40, maxHeight: '80%' },
+    modalTitle: { fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' },
+    modalSubtitle: { fontSize: 13, color: '#64748B', marginBottom: 16, textAlign: 'center' },
+    videoPreview: { width: '100%', height: 200, borderRadius: 16, marginBottom: 16 },
+    pickVideoBtn: { backgroundColor: '#a18cd1', padding: 14, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
+    pickVideoBtnText: { color: '#fff', fontWeight: '700' },
     modalCloseBtn: { alignItems: 'center', padding: 12 },
-    modalCloseText: { color: '#6B7280', fontSize: 14 },
+    modalCloseText: { color: '#64748B', fontSize: 14, fontWeight: '600' },
 });

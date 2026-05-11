@@ -1,3 +1,4 @@
+import './i18n'; // Initialize i18next with Sinhala translations
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

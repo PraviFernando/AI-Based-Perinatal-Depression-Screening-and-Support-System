@@ -33,8 +33,10 @@ const applySafetyRules = (healthData) => {
     }
     
     if (healthData.pelvicPain || healthData.abdominalPain) {
-        warnings.push('Mild pain detected. Low-intensity exercises only.');
         safetyStatus = 'limited';
+        safetyMessage = 'Mild pain detected. Low-intensity exercises only.';
+        safetyMessageSi = 'සුළු වේදනාවක් පවතී. අඩු තීව්‍රතාවයකින් යුත් ව්‍යායාම පමණක් කරන්න.';
+        warnings.push(safetyMessage);
     }
     
     // Rule 3: Doctor restrictions
@@ -49,10 +51,14 @@ const applySafetyRules = (healthData) => {
     // Rule 4: Mobility limitations
     if (healthData.mobilityLevel === 'very_limited') {
         safetyStatus = 'limited';
-        warnings.push('Limited mobility. Breathing exercises only.');
+        safetyMessage = 'Limited mobility. Breathing exercises only.';
+        safetyMessageSi = 'චලනය වීමේ හැකියාව සීමිතයි. හුස්ම ගැනීමේ ව්‍යායාම පමණක් කරන්න.';
+        warnings.push(safetyMessage);
     } else if (healthData.mobilityLevel === 'limited') {
         safetyStatus = 'limited';
-        warnings.push('Limited mobility. Light stretching and breathing exercises only.');
+        safetyMessage = 'Limited mobility. Light stretching and breathing exercises only.';
+        safetyMessageSi = 'චලනය වීමේ හැකියාව සීමිතයි. සැහැල්ලු ඇදීමේ සහ හුස්ම ගැනීමේ ව්‍යායාම පමණක් කරන්න.';
+        warnings.push(safetyMessage);
     }
     
     // Rule 5: PPD Risk Level
@@ -66,18 +72,28 @@ const applySafetyRules = (healthData) => {
     
     if (healthData.ppdRiskLevel === 'medium') {
         safetyStatus = 'limited';
-        warnings.push('Medium PPD risk. Low-intensity, calming exercises recommended.');
+        safetyMessage = 'Medium PPD risk. Low-intensity, calming exercises recommended.';
+        safetyMessageSi = 'මධ්‍යම මට්ටමේ PPD අවදානමක් ඇත. අඩු තීව්‍රතාවයකින් යුත් සන්සුන් ව්‍යායාම නිර්දේශ කරනු ලැබේ.';
+        warnings.push(safetyMessage);
     }
     
     // Rule 6: Fatigue level
     if (healthData.fatigueLevel === 'high') {
         safetyStatus = 'limited';
-        warnings.push('High fatigue detected. Short, gentle exercises only.');
+        safetyMessage = 'High fatigue detected. Short, gentle exercises only.';
+        safetyMessageSi = 'වැඩි තෙහෙට්ටුවක් පවතී. කෙටි සහ මෘදු ව්‍යායාම පමණක් කරන්න.';
+        warnings.push(safetyMessage);
     }
     
     // Rule 7: Willingness to exercise
     if (healthData.willingnessToExercise === 'low') {
-        warnings.push('Low motivation detected. Try very short, simple exercises to start.');
+        const msg = 'Low motivation detected. Try very short, simple exercises to start.';
+        const msgSi = 'අඩු පෙළඹවීමක් පවතී. ඉතා කෙටි සහ සරල ව්‍යායාම වලින් ආරම්භ කිරීමට උත්සාහ කරන්න.';
+        warnings.push(msg);
+        if (!safetyMessage) {
+            safetyMessage = msg;
+            safetyMessageSi = msgSi;
+        }
     }
     
     return { safetyStatus, safetyMessage, safetyMessageSi, warnings };
