@@ -104,38 +104,98 @@ const applySafetyRules = (healthData) => {
 /**
  * Bilingual Mood Detection Function
  * Detects mood from text content (English/Sinhala) and emojis
+ * Handles negation ("I'm not sad" → NOT sad)
+ * Uses diary's pre-computed sentiment as primary signal
  */
-const analyzeDiaryMood = (text, emoji) => {
-    let mood = 'neutral';
+const analyzeDiaryMood = (text, emoji, diarySentiment) => {
     const content = (text || '').toLowerCase();
 
-    // Emoji detection
+    // 1) Start from the diary's pre-computed sentiment (most reliable)
+    let mood = 'neutral';
+    if (diarySentiment === 'Negative Mind') mood = 'sad';
+    else if (diarySentiment === 'Positive Mind') mood = 'happy';
+
+    // 2) Helper: is the keyword preceded by a negation?
+    const isNegated = (keyword) => {
+        const negations = [
+            'not ', "don't feel ", "don't ", "never ",
+            "no longer ", "am not ", "im not ", "i'm not ",
+            "isn't ", "didn't ", "cannot ", "can't ", "didn't feel "
+        ];
+        for (const neg of negations) {
+            if (content.includes(neg + keyword)) return true;
+        }
+        return false;
+    };
+
+    // 3) Emoji detection (overrides sentiment if explicit)
     const happyEmojis = ['😊', '😄', '🥰', '🌟', '🌈', '🤩'];
-    const sadEmojis = ['😔', '😢', '😭', '💔', '🥀', '😟'];
+    const sadEmojis   = ['😔', '😢', '😭', '💔', '🥀', '😟'];
     const tiredEmojis = ['😪', '😴', '🥱', '🔋', '😫', '💤'];
-    const stressedEmojis = ['😰', '😰', '🤯', '⚡', '🌋', '🆘'];
+    const stressedEmojis = ['😰', '🤯', '⚡', '🌋', '🆘'];
     const angryEmojis = ['😠', '😡', '🤬', '🔥', '💢', '😤'];
 
-    if (happyEmojis.includes(emoji)) mood = 'happy';
-    else if (sadEmojis.includes(emoji)) mood = 'sad';
+    if (happyEmojis.includes(emoji))   mood = 'happy';
+    else if (sadEmojis.includes(emoji))   mood = 'sad';
     else if (tiredEmojis.includes(emoji)) mood = 'tired';
     else if (stressedEmojis.includes(emoji)) mood = 'stressed';
     else if (angryEmojis.includes(emoji)) mood = 'angry';
 
-    // English Keywords detection
-    if (content.includes('happy') || content.includes('great') || content.includes('good') || content.includes('joy')) mood = 'happy';
-    if (content.includes('sad') || content.includes('cry') || content.includes('unhappy') || content.includes('depressed')) mood = 'sad';
-    if (content.includes('tired') || content.includes('exhausted') || content.includes('sleepy') || content.includes('fatigue')) mood = 'tired';
-    if (content.includes('stressed') || content.includes('anxious') || content.includes('pressure') || content.includes('tension')) mood = 'stressed';
-    if (content.includes('angry') || content.includes('mad') || content.includes('furious') || content.includes('hate')) mood = 'angry';
+    // 4) Negation-aware English keyword detection — comprehensive synonyms
+    const sadWords    = ['sad', 'unhappy', 'depressed', 'cry', 'crying', 'heartbroken', 'miserable',
+                         'down', 'low', 'blue', 'gloomy', 'hopeless', 'helpless', 'lonely', 'alone',
+                         'grief', 'grieve', 'sorrow', 'sorrow', 'hurt', 'broken', 'empty', 'lost',
+                         'tearful', 'devastated', 'disappointed', 'upset', 'melancholy', 'despair',
+                         'worthless', 'numb', 'pain', 'suffering', 'regret', 'guilt'];
+    const happyWords  = ['happy', 'joy', 'joyful', 'great', 'good', 'excellent', 'amazing', 'wonderful',
+                         'excited', 'cheerful', 'content', 'pleased', 'grateful', 'thankful', 'blessed',
+                         'positive', 'hopeful', 'energetic', 'love', 'smile', 'laugh', 'relief', 'proud'];
+    const tiredWords  = ['tired', 'tied', 'exhausted', 'sleepy', 'fatigue', 'fatigued', 'drained', 'worn out',
+                         'worn-out', 'weak', 'sluggish', 'lethargic', 'no energy', 'no strength',
+                         'burned out', 'burnout', 'can barely', 'cannot move', 'rest needed'];
+    const stressedWords = ['stressed', 'stress', 'anxious', 'anxiety', 'worried', 'worry', 'nervous',
+                           'pressure', 'tension', 'overwhelmed', 'overwhelm', 'panic', 'fear', 'scared',
+                           'frightened', 'restless', 'uneasy', 'troubled', 'burden', 'too much'];
+    const angryWords  = ['angry', 'anger', 'mad', 'furious', 'hate', 'rage', 'irritated', 'irritate',
+                         'frustrated', 'frustration', 'annoyed', 'annoy', 'resentful', 'bitter',
+                         'outraged', 'hostile', 'violent', 'aggressive', 'explosive'];
 
-    // Sinhala Keywords detection
-    if (content.includes('සතුට') || content.includes('හොඳයි') || content.includes('ප්‍රීති')) mood = 'happy';
-    if (content.includes('දුක') || content.includes('අඬන') || content.includes('කණගාටු')) mood = 'sad';
-    if (content.includes('තෙහෙට්ටුව') || content.includes('මහන්සි') || content.includes('නිදිමත')) mood = 'tired';
-    if (content.includes('ආතතිය') || content.includes('බිය') || content.includes('කලබල')) mood = 'stressed';
-    if (content.includes('තරහ') || content.includes('කේන්ති') || content.includes('වෛර')) mood = 'angry';
+    const checkMood = (words, targetMood) => {
+        const negatedAll = words.every(w => isNegated(w));
+        if (negatedAll) return;
+        const hasWord = words.some(w => !isNegated(w) && content.includes(w));
+        if (hasWord) mood = targetMood;
+    };
 
+    checkMood(happyWords,   'happy');
+    checkMood(sadWords,     'sad');
+    checkMood(tiredWords,   'tired');
+    checkMood(stressedWords,'stressed');
+    checkMood(angryWords,   'angry');
+
+    // 5) Negation-aware Sinhala keyword detection — comprehensive synonyms
+    const siSadWords     = ['දුක', 'දුකයි', 'අඬනවා', 'කණගාටු', 'හිතාගන්න බෑ', 'අසරණ',
+                            'හිත රිදෙනවා', 'කඳුළු', 'ශෝකය', 'ශෝකෙ', 'කලකිරෙනවා',
+                            'බලාපොරොත්තු නෑ', 'හුදෙකලා', 'හිතේ බර', 'රිදෙනවා'];
+    const siHappyWords   = ['සතුටු', 'සතුට', 'හොඳයි', 'ප්‍රීති', 'ප්‍රීතිමත්', 'ප්‍රමෝදය',
+                            'ආශාවෙන්', 'ස්තූතිය', 'කෘතගුණ', 'ආනන්ද', 'සිනාසෙනවා',
+                            'හිනාවෙනවා', 'ගෙදර සතුටු', 'ජීවිතෙ හොඳයි'];
+    const siTiredWords   = ['තෙහෙට්ටුව', 'තෙහෙට්ටු', 'මහන්සිය', 'මහන්සි', 'නිදිමත',
+                            'ශක්තිය නෑ', 'බල නෑ', 'දුර්වල', 'ඇඳෙන් නැගිටන්න බෑ',
+                            'ශරීරය කඩ', 'නොනිදා', 'ඉවසන්නම බෑ'];
+    const siStressedWords= ['ආතතිය', 'ආතතිෙ', 'බිය', 'කලබල', 'කලකිරෙනවා', 'කනස්සල්ල',
+                            'කරදර', 'සිත් නොතබා', 'හිත සන්සුන් නෑ', 'බාධා', 'අවුල්'];
+    const siAngryWords   = ['තරහ', 'කේන්ති', 'වෛරය', 'වෛර', 'කෝපය', 'කෝප', 'නේන්ති',
+                            'කෝපෙ', 'ෆ්‍රස්ට්‍රේෂන්', 'හිත රඟ', 'ගෙදර රඟ'];
+
+    checkMood(siHappyWords,   'happy');
+    checkMood(siSadWords,     'sad');
+    checkMood(siTiredWords,   'tired');
+    checkMood(siStressedWords,'stressed');
+    checkMood(siAngryWords,   'angry');
+
+
+    console.log(`[Diary Mood] Detected: ${mood} (sentiment: ${diarySentiment}, emoji: ${emoji})`);
     return mood;
 };
 
@@ -498,6 +558,7 @@ const submitHealthData = async (req, res, next) => {
         
         // Generate recommendations if not blocked
         let recommendations = [];
+        let detectedMood = 'neutral';
         if (safety.safetyStatus !== 'blocked') {
             if (mlRecommendedExercises && mlRecommendedExercises.length > 0) {
                 recommendations = mlRecommendedExercises.map(ex => ({
@@ -512,7 +573,11 @@ const submitHealthData = async (req, res, next) => {
 
             // Apply Diary-based Mood Logic
             const diaryEntry = await Diary.findOne({ userId, date });
-            const detectedMood = analyzeDiaryMood(diaryEntry ? diaryEntry.content : '', mood);
+            detectedMood = analyzeDiaryMood(
+                diaryEntry ? diaryEntry.content : '',
+                diaryEntry ? diaryEntry.mood : null,
+                diaryEntry ? diaryEntry.sentiment : null
+            );
             recommendations = applyDiaryRules(recommendations, detectedMood);
 
             healthData.recommendedExercises = recommendations;
@@ -600,6 +665,7 @@ const submitHealthData = async (req, res, next) => {
             warnings: safety.warnings || [],
             recommendedExercises: populatedRecommendations,
             healthDataId: savedData._id,
+            detectedMood: detectedMood,
             mlPrediction: {
                 riskLevel: mlRiskLevel,
                 confidence: mlConfidence,
@@ -710,13 +776,24 @@ const getRecommendations = async (req, res, next) => {
                 recommendations.push(rec);
             }
         }
-        
+        // Recalculate mood based on the latest diary entry
+        const diaryEntry = await Diary.findOne({ userId, date });
+        const detectedMood = analyzeDiaryMood(
+            diaryEntry ? diaryEntry.content : '',
+            diaryEntry ? diaryEntry.mood : null,
+            diaryEntry ? diaryEntry.sentiment : null
+        );
+
+        // Dynamically apply diary rules to the base ML recommendations
+        const modifiedRecommendations = applyDiaryRules(recommendations, detectedMood);
+
         res.json({
-            recommendations,
+            recommendations: modifiedRecommendations,
             hasData: true,
             safetyStatus: healthData.safetyStatus,
             safetyMessage: healthData.safetyMessage,
-            safetyMessageSi: healthData.safetyMessageSi
+            safetyMessageSi: healthData.safetyMessageSi,
+            detectedMood: detectedMood
         });
     } catch (err) {
         next(err);

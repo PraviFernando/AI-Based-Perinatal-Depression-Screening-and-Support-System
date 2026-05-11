@@ -512,5 +512,11 @@
   "Cat Cow Stretch": "බළලා-එළදෙන දිගු කිරීම",
   "Arm Circles": "අත් කව කිරීම",
   "Modified Squats": "වෙනස් කළ ස්කොට්ස්",
-  "Wall Pushups": "බිත්ති තල්ලු කිරීම්"
+  "Wall Pushups": "බිත්ති තල්ලු කිරීම්",
+  "happy": "සතුටුයි",
+  "sad": "දුකයි",
+  "tired": "මහන්සියි",
+  "stressed": "ආතතියෙන්",
+  "angry": "තරහයි",
+  "neutral": "සාමාන්‍යයි"
 }

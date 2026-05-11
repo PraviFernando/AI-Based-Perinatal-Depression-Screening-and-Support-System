@@ -559,15 +559,27 @@ const ExerciseCard = ({ exercise, onComplete, onUploadVideo, isCompleted }) => {
 };
 
 // Progress Dashboard Component
-const ProgressDashboard = ({ progress }) => {
+const ProgressDashboard = ({ progress, detectedMood }) => {
     const { t } = useTranslation();
     if (!progress) return null;
     
     return (
         <View style={styles.progressContainer}>
-            <Text style={styles.progressTitle}>
-                {t('Your Progress')}
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <Text style={[styles.progressTitle, { marginBottom: 0 }]}>
+                    {t('Your Progress')}
+                </Text>
+                {detectedMood && detectedMood !== 'happy' && detectedMood !== 'neutral' && (
+                    <View style={{ backgroundColor: 'rgba(161,140,209,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#a18cd1' }}>
+                        <Text style={{ fontSize: 14, marginRight: 6 }}>
+                            {detectedMood === 'sad' ? '😔' : detectedMood === 'tired' ? '😪' : detectedMood === 'stressed' ? '😰' : detectedMood === 'angry' ? '😠' : '😌'}
+                        </Text>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#a18cd1', textTransform: 'capitalize' }}>
+                            {t(detectedMood)}
+                        </Text>
+                    </View>
+                )}
+            </View>
             
             <View style={styles.statsGrid}>
                 <LinearGradient colors={['#FF9A9E', '#FECFEF']} style={styles.statBox} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -584,19 +596,7 @@ const ProgressDashboard = ({ progress }) => {
                 </LinearGradient>
             </View>
             
-            {progress.progressData && progress.progressData.length > 0 && (
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>{t('Weekly Accuracy')}</Text>
-                    <View style={styles.barChart}>
-                        {progress.progressData.slice(-7).map((item, idx) => (
-                            <View key={idx} style={styles.barItem}>
-                                <View style={[styles.bar, { height: Math.min((item.avgAccuracy || 0) / 2, 80) }]} />
-                                <Text style={styles.barLabel}>{item.date ? item.date.slice(5) : ''}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-            )}
+
         </View>
     );
 };
@@ -652,6 +652,7 @@ export default function ExerciseScreen({ navigation }) {
     const [safetyStatus, setSafetyStatus] = useState(null);
     const [safetyMessage, setSafetyMessage] = useState('');
     const [safetyMessageSi, setSafetyMessageSi] = useState('');
+    const [detectedMood, setDetectedMood] = useState(null);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(null);
     const [showForm, setShowForm] = useState(true);
@@ -690,6 +691,7 @@ export default function ExerciseScreen({ navigation }) {
                 setSafetyStatus(data.safetyStatus);
                 setSafetyMessage(data.safetyMessage || '');
                 setSafetyMessageSi(data.safetyMessageSi || '');
+                setDetectedMood(data.detectedMood || null);
                 setShowForm(false);
             }
         } catch (err) {
@@ -705,6 +707,7 @@ export default function ExerciseScreen({ navigation }) {
                 setSafetyStatus(response.safetyStatus);
                 setSafetyMessage(response.safetyMessage);
                 setSafetyMessageSi(response.safetyMessageSi);
+                setDetectedMood(response.detectedMood || null);
                 setRecommendations(response.recommendedExercises || []);
                 setHasData(true);
                 setShowForm(false);
@@ -791,7 +794,7 @@ export default function ExerciseScreen({ navigation }) {
                 </View>
                 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    <ProgressDashboard progress={progress} />
+                    <ProgressDashboard progress={progress} detectedMood={detectedMood} />
                     
                     {safetyStatus && (
                         <SafetyWarning
