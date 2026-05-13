@@ -26,7 +26,18 @@ const getPatients = async (req, res, next) => {
 
         const patients = await User.find(query)
             .select('-password')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const EPDSScreening = require('../models/EPDSScreening');
+        for (let patient of patients) {
+            const latestEpds = await EPDSScreening.findOne({ userId: patient._id }).sort({ month: -1 });
+            if (latestEpds) {
+                patient.latestEpdsScore = latestEpds.totalScore;
+                patient.latestEpdsRisk = latestEpds.riskLevel;
+            }
+        }
+
         res.json(patients);
     } catch (err) {
         next(err);

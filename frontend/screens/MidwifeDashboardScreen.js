@@ -75,6 +75,64 @@ function PatientModal({ visible, patient, onClose }) {
                         </Text>
                     </View>
 
+                    {/* EPDS Score & Risk */}
+                    {patient.latestEpdsScore !== undefined && (
+                        <>
+                            <View style={styles.divider} />
+                            <Text style={styles.sectionHeading}>Latest EPDS Result</Text>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailIcon}>📊</Text>
+                                <Text style={styles.detailText}>Score: {patient.latestEpdsScore}/30</Text>
+                            </View>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailIcon}>⚠️</Text>
+                                <Text style={[styles.detailText, {
+                                    color: patient.latestEpdsRisk === 'high' ? '#EF4444' : patient.latestEpdsRisk === 'medium' ? '#F59E0B' : '#10B981',
+                                    fontWeight: '700'
+                                }]}>
+                                    Risk: {patient.latestEpdsRisk.toUpperCase()}
+                                </Text>
+                            </View>
+                        </>
+                    )}
+
+                    {/* Baby Details */}
+                    {patient.babyDetails && Object.keys(patient.babyDetails).length > 0 && (
+                        <>
+                            <View style={styles.divider} />
+                            <Text style={styles.sectionHeading}>Baby Details</Text>
+                            {patient.babyDetails.birthday ? (
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailIcon}>🎂</Text>
+                                    <Text style={styles.detailText}>Born: {patient.babyDetails.birthday}</Text>
+                                </View>
+                            ) : null}
+                            {patient.babyDetails.weight ? (
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailIcon}>⚖️</Text>
+                                    <Text style={styles.detailText}>Weight: {patient.babyDetails.weight}</Text>
+                                </View>
+                            ) : null}
+                            {patient.babyDetails.height ? (
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailIcon}>📏</Text>
+                                    <Text style={styles.detailText}>Height: {patient.babyDetails.height}</Text>
+                                </View>
+                            ) : null}
+                            
+                            {patient.babyDetails.vaccinations && patient.babyDetails.vaccinations.length > 0 && (
+                                <View style={{ width: '100%', marginTop: 8 }}>
+                                    <Text style={[styles.detailText, { fontWeight: 'bold', marginBottom: 4 }]}>Vaccinations:</Text>
+                                    {patient.babyDetails.vaccinations.map((vac, i) => (
+                                        <Text key={i} style={[styles.detailText, { fontSize: 13, marginLeft: 24, color: '#6B7280' }]}>
+                                            • {vac.name} ({vac.date})
+                                        </Text>
+                                    ))}
+                                </View>
+                            )}
+                        </>
+                    )}
+
                     <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
                         <Text style={styles.closeBtnText}>Close</Text>
                     </TouchableOpacity>
@@ -306,6 +364,8 @@ const styles = StyleSheet.create({
     detailRow: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12, gap: 10 },
     detailIcon: { fontSize: 20 },
     detailText: { fontSize: 14, color: '#374151' },
+    divider: { height: 1, backgroundColor: '#E5E7EB', width: '100%', marginVertical: 12 },
+    sectionHeading: { fontSize: 16, fontWeight: '700', color: '#111827', width: '100%', marginBottom: 10 },
     closeBtn: {
         marginTop: 20, backgroundColor: TEAL, borderRadius: 14,
         paddingVertical: 13, paddingHorizontal: 40,
