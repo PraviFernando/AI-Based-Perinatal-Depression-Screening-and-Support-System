@@ -91,6 +91,11 @@ const updatePlanStatus = async (req, res, next) => {
 const upsertActivity = async (req, res, next) => {
     try {
         const { date, activityId, activityName, timeOfDay, icon, completed, timerSeconds, isCustom, note } = req.body;
+        // Validation: Disallow creating/updating activities for past dates
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (date < todayStr) {
+            return res.status(400).json({ message: 'Cannot add activity for past dates' });
+        }
         const userId = req.user.id;
         const [year, month] = date.split('-').map(Number);
 
